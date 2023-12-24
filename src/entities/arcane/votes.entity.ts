@@ -2,29 +2,34 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    OneToMany,
+    OneToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
 import { AddressVote } from './address-vote.entity';
 
 @Entity()
-export class Vote {
+export class Votes {
     @PrimaryGeneratedColumn({ type: 'bigint' })
     id: number;
-
-    @Column({ type: 'text', nullable: false })
-    description: string;
 
     @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     createdAt: Date;
 
+    @Column({ type: 'text', nullable: false })
+    address: string;
+
+    @Column({ type: 'text', nullable: false })
+    title: string;
+
+    @Column({ type: 'text', nullable: false })
+    description: string;
+
     @Column({ type: 'json', nullable: false })
     votes: Record<string, number>;
 
-    @Column({ type: 'boolean', default: false })
+    @Column({ type: 'boolean', default: true })
     isPending: boolean;
 
-    // eslint-disable-next-line prettier/prettier, @typescript-eslint/no-unused-vars
-    @OneToMany((type) => AddressVote, (addressVotePair) => addressVotePair.vote)
-    addressVotePair: AddressVote[];
+    @OneToOne(() => AddressVote, (addressVote) => addressVote.votes)
+    addressPair: AddressVote;
 }

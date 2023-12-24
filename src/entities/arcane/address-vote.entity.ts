@@ -1,17 +1,23 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    OneToOne,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Address } from './address.entity';
-import { Vote } from './vote.entity';
+import { Votes } from './votes.entity';
 
 @Entity()
 export class AddressVote {
     @PrimaryGeneratedColumn({ type: 'bigint' })
     id: number;
 
-    // eslint-disable-next-line prettier/prettier, @typescript-eslint/no-unused-vars
-    @ManyToOne((type) => Address, (address) => address.addressVotePair)
+    @ManyToOne(() => Address, (address) => address.votePair)
+    @JoinColumn()
     address: Address;
 
-    // eslint-disable-next-line prettier/prettier, @typescript-eslint/no-unused-vars
-    @ManyToOne((type) => Vote, (vote) => vote.addressVotePair)
-    vote: Vote;
+    @OneToOne(() => Votes, (votes) => votes.addressPair)
+    @JoinColumn()
+    votes: Votes;
 }

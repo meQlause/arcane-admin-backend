@@ -29,12 +29,8 @@ export class Address {
     @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     createdAt: Date;
 
-    @OneToMany(
-        // eslint-disable-next-line prettier/prettier, @typescript-eslint/no-unused-vars
-        (type) => AddressVote,
-        (addressVotePair) => addressVotePair.address
-    )
-    addressVotePair: AddressVote[];
+    @OneToMany(() => AddressVote, (addressVote) => addressVote.address)
+    votePair: AddressVote[];
 
     get isAdmin(): boolean {
         return this.role === UserRole.Admin;

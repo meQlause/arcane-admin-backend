@@ -19,8 +19,6 @@ export class AddressService {
             role === 'admin'
                 ? process.env.ADMIN_RESOURCE_ADDRESS!
                 : process.env.MEMBER_RESOURCE_ADDRESS!;
-        console.log(neededResourceAddress);
-        console.log(items);
         return items.some((item: Item) => {
             return item.resource_address === neededResourceAddress;
         });
