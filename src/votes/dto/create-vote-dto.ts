@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsObject, IsString } from 'class-validator';
+import { IsArray, IsDateString, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateVoteDto {
     @IsString()
@@ -13,7 +13,15 @@ export class CreateVoteDto {
     @IsNotEmpty()
     description: string;
 
-    @IsObject()
+    @IsArray()
     @IsNotEmpty()
-    votes: Record<string, number>;
+    votes: string[];
+
+    @IsDateString()
+    @IsNotEmpty()
+    startDate: Date;
+
+    @IsDateString()
+    @IsNotEmpty()
+    endDate: Date;
 }

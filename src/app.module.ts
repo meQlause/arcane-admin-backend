@@ -40,7 +40,6 @@ import { DataSource } from 'typeorm';
                 });
             },
         }),
-        TypeOrmModule.forRoot(arcane),
         RolaModule,
         AddressModule,
         VotesModule,

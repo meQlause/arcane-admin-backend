@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Rola, RolaError, SignedChallenge } from '@radixdlt/rola';
 import { ResultAsync } from 'neverthrow';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
 import * as dotenv from 'dotenv';
 import { JwtService } from '@nestjs/jwt';
+import { AuthResponse, JWTData, UserRole } from 'src/custom';
 dotenv.config();
 
 @Injectable()
@@ -31,10 +32,22 @@ export class RolaService {
             expectedOrigin: `${process.env.EXPECTED_ORIGIN}`,
         });
     }
+
     private secureRandom(byteCount: number): string {
         return crypto.randomBytes(byteCount).toString('hex');
     }
-    async create(): Promise<RolaChallenge> {
+
+    private async validateAddress(address: string): Promise<Address> {
+        const account = await this.AddressRepo.findOne({
+            where: { address: address },
+        });
+        if (!account) {
+            return null;
+        }
+        return account;
+    }
+
+    async createChallenge(): Promise<RolaChallenge> {
         const challenge = this.secureRandom(32);
         const expires = Date.now() + 1000 * 60 * 5;
         const challengeToSave = this.rolaChallengeRepo.create({
@@ -43,6 +56,7 @@ export class RolaService {
         });
         return await this.rolaChallengeRepo.save(challengeToSave);
     }
+
     async verifyChallenge(input: string): Promise<boolean> {
         const challenge = await this.rolaChallengeRepo.findOne({
             where: { challenge: input },
@@ -51,25 +65,22 @@ export class RolaService {
         await this.rolaChallengeRepo.remove(challenge);
         return challenge.expires > Date.now();
     }
-    async verifyRole(
-        address: string
-    ): Promise<{ access_token: string; role: string; address: string }> {
-        const registeredAddress = await this.AddressRepo.findOne({
-            where: { address: address },
-        });
-        if (!registeredAddress) {
-            throw new UnauthorizedException();
-        }
 
-        const payload = {
-            sub: registeredAddress.address,
-            role: registeredAddress.role,
+    async login(address: string): Promise<AuthResponse> {
+        const returnValue: AuthResponse = {
+            access_token: undefined,
+            address: address,
+            role: UserRole.Unregistered,
         };
-        const accessToken = await this.jwtService.signAsync(payload);
-        return {
-            access_token: accessToken,
-            role: registeredAddress.role,
-            address: registeredAddress.address,
+        const account = await this.validateAddress(address);
+        if (!account) return returnValue;
+
+        const payload: JWTData = {
+            address: account.address,
+            role: account.role,
         };
+        returnValue.access_token = await this.jwtService.signAsync(payload);
+        returnValue.role = account.role;
+        return returnValue;
     }
 }

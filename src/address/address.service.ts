@@ -1,10 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Address, UserRole } from 'src/entities/arcane/address.entity';
+import { Address } from 'src/entities/arcane/address.entity';
 import { Repository } from 'typeorm';
-import { AddressType } from 'src/enum';
+import { UserRole, VaultNftId } from 'src/custom';
+import {
+    getAdminVaultAddressAndNftId,
+    isWalletContainsBadge,
+} from '../helpers/RadixAPI';
 import * as dotenv from 'dotenv';
-import { Item, ResponseData } from 'src/interfaces';
 dotenv.config();
 
 @Injectable()
@@ -14,17 +17,20 @@ export class AddressService {
         private readonly addressRepo: Repository<Address>
     ) {}
 
-    private isRoleValid(items: Array<Item>, role: string): boolean {
-        const neededResourceAddress: string =
-            role === 'admin'
-                ? process.env.ADMIN_RESOURCE_ADDRESS!
-                : process.env.MEMBER_RESOURCE_ADDRESS!;
-        return items.some((item: Item) => {
-            return item.resource_address === neededResourceAddress;
+    async getAdmins(): Promise<Address[]> {
+        return await this.addressRepo.find({
+            where: { role: UserRole.Admin },
         });
     }
 
-    async register(address: string, role: UserRole) {
+    async register(address: string, role: UserRole): Promise<Address> {
+        const userRole = await isWalletContainsBadge(address);
+        if (userRole !== UserRole.Admin && userRole !== UserRole.Member) {
+            throw new UnauthorizedException(
+                `User ${address} is not mint badge member yet`
+            );
+        }
+
         const registeredAddress = this.addressRepo.create({
             address: address,
             role: role,
@@ -32,35 +38,48 @@ export class AddressService {
         return await this.addressRepo.save(registeredAddress);
     }
 
-    async verifyAddress(address: string): Promise<AddressType> {
-        const body = {
-            address,
-        };
+    async get(address: string): Promise<Address> {
+        const account = await this.addressRepo.findOneBy({ address });
+        if (!account) {
+            return null;
+        }
+        return account;
+    }
 
-        return fetch(process.env.GATEWAY_API, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(body),
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                const { items }: ResponseData = data;
-                console.log(items);
-                const admin = this.isRoleValid(items, 'admin');
-                if (admin) {
-                    return AddressType.Admin;
-                }
-                const member = this.isRoleValid(items, 'member');
-                if (member) {
-                    return AddressType.Member;
-                }
-                return AddressType.Unregistered;
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                return AddressType.Unregistered;
-            })!;
+    async makeAdmin(address: string): Promise<string> {
+        const account = await this.addressRepo.findOneBy({ address });
+        if (!account) {
+            return UserRole.Unregistered;
+        }
+        const data: VaultNftId = await getAdminVaultAddressAndNftId(address);
+        account.role = UserRole.Admin;
+        account.vault_admin_address = data.vaultAddress;
+        account.nft_id = data.nftId;
+        await this.addressRepo.save(account);
+        return account.address;
+    }
+
+    async unmakeAdmin(address: string): Promise<string> {
+        const account = await this.addressRepo.findOneBy({ address });
+        if (!account) {
+            return UserRole.Unregistered;
+        }
+        account.role = UserRole.Member;
+        account.nft_id = null;
+        account.vault_admin_address = null;
+        if ((await isWalletContainsBadge(address)) === UserRole.Unregistered) {
+            this.addressRepo.remove(account);
+        }
+        await this.addressRepo.save(account);
+        console.log(account);
+        return account.address;
+    }
+
+    async getAddressVotes(address: string): Promise<Address> {
+        return await this.addressRepo
+            .createQueryBuilder('address')
+            .leftJoinAndSelect('address.votes', 'votes')
+            .where('address.address = :address', { address })
+            .getOne();
     }
 }

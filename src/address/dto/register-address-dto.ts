@@ -1,9 +1,6 @@
-import { IsIn, IsString } from 'class-validator';
-import { UserRole } from 'src/entities/arcane/address.entity';
+import { IsString } from 'class-validator';
 
 export class RegisterAddressDto {
     @IsString()
     address: string;
-    @IsIn(Object.values(UserRole))
-    roles: UserRole;
 }

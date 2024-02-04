@@ -2,7 +2,7 @@ import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConne
 import { RolaChallenge } from 'src/entities/rola-challenge/rola-challenge.entity';
 import { Address } from 'src/entities/arcane/address.entity';
 import { Votes } from 'src/entities/arcane/votes.entity';
-import { AddressVote } from 'src/entities/arcane/address-vote.entity';
+import { Discussions } from 'src/entities/arcane/discussion.entity';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -24,6 +24,6 @@ export const arcane: PostgresConnectionOptions = {
     port: 5432,
     username: process.env.USER_DB,
     password: process.env.PASSWORD_DB,
-    entities: [Address, Votes, AddressVote],
+    entities: [Address, Votes, Discussions],
     synchronize: true,
 };

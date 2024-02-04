@@ -1,13 +1,6 @@
-import {
-    Body,
-    Controller,
-    Get,
-    Post,
-    UnauthorizedException,
-} from '@nestjs/common';
+import { Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
 import { RolaService } from './rola.service';
-import { SignedChallenge } from '@radixdlt/rola';
-import { ResultAsync } from 'neverthrow';
+import { RolaGuard } from '../auth/guards/rola-auth.guard';
 
 @Controller('rola')
 export class RolaController {
@@ -15,37 +8,15 @@ export class RolaController {
 
     @Get('generate-challenge')
     async generateChallenge(): Promise<{ challenge: string }> {
-        const { challenge } = await this.rola.create();
+        const { challenge } = await this.rola.createChallenge();
         return { challenge: challenge };
     }
 
+    @UseGuards(RolaGuard)
     @Post('verify')
     async verify(
-        @Body() data: SignedChallenge[]
-    ): Promise<{ access_token: string }> {
-        const address = data[0].address;
-        if (!address) {
-            throw new UnauthorizedException();
-        }
-        const [challenge] = [
-            ...data
-                .reduce(
-                    (acc, curr) => acc.add(curr.challenge),
-                    new Set<string>()
-                )
-                .values(),
-        ];
-
-        if (!this.rola.verifyChallenge(challenge))
-            throw new UnauthorizedException();
-
-        const verifiedChallenge = await ResultAsync.combine(
-            data.map((signedChallenge) =>
-                this.rola.rolaProperty.verifySignedChallenge(signedChallenge)
-            )
-        );
-        if (verifiedChallenge.isErr()) throw new UnauthorizedException();
-        const res = await this.rola.verifyRole(address);
-        return res;
+        @Request() req: any
+    ): Promise<{ access_token: string; role: string; address: string }> {
+        return await this.rola.login(req.address);
     }
 }

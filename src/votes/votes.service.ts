@@ -4,8 +4,8 @@ import { Address } from 'src/entities/arcane/address.entity';
 import { Votes } from 'src/entities/arcane/votes.entity';
 import { Repository } from 'typeorm';
 import { CreateVoteDto } from './dto/create-vote-dto';
-import { AddressVote } from 'src/entities/arcane/address-vote.entity';
 import { Transactional } from 'typeorm-transactional';
+import { Discussions } from 'src/entities/arcane/discussion.entity';
 
 @Injectable()
 export class VotesService {
@@ -14,8 +14,8 @@ export class VotesService {
         private readonly AddressRepo: Repository<Address>,
         @InjectRepository(Votes, 'arcane-connection')
         private readonly VotesRepo: Repository<Votes>,
-        @InjectRepository(AddressVote, 'arcane-connection')
-        private readonly AddressVotesPairRepo: Repository<AddressVote>
+        @InjectRepository(Discussions, 'arcane-connection')
+        private readonly DiscussionRepo: Repository<Discussions>
     ) {}
 
     private async isRegistered(address: string): Promise<Address> {
@@ -24,36 +24,41 @@ export class VotesService {
 
     @Transactional({ connectionName: 'arcane-datasource' })
     async createVote(data: CreateVoteDto): Promise<Votes> {
-        const address = await this.isRegistered(data.address);
+        const address: Address = await this.isRegistered(data.address);
         if (!address) {
             throw new UnauthorizedException('address unregistered');
         }
 
-        const voteToSave = this.VotesRepo.create({
-            address: data.address,
+        const discussion: Discussions = this.DiscussionRepo.create({});
+
+        const vote_choice = data.votes.reduce(
+            (obj, key) => ({ ...obj, [key]: 0 }),
+            {}
+        );
+
+        const vote: Votes = this.VotesRepo.create({
+            startDate: data.startDate,
+            endDate: data.endDate,
             title: data.title,
             description: data.description,
-            votes: data.votes,
+            isPending: true,
+            vote_choice: vote_choice,
         });
 
-        const addressVotePair = this.AddressVotesPairRepo.create({
-            address: address,
-            votes: voteToSave,
-        });
-        console.log(addressVotePair);
-        const isVoteSaved = await this.VotesRepo.save(voteToSave);
-        const isAddressVotePairSaved =
-            await this.AddressVotesPairRepo.insert(addressVotePair);
+        vote.discussion = discussion;
+        vote.address = address;
+        address.discussions = [discussion];
 
-        if (!isVoteSaved || !isAddressVotePairSaved) {
-            throw new UnauthorizedException(
-                `Failed to save ${!isVoteSaved ? 'vote' : 'address vote pair'}`
-            );
-        }
-        return isVoteSaved;
+        await this.DiscussionRepo.save(discussion);
+        await this.AddressRepo.save(address);
+        return await this.VotesRepo.save(vote);
     }
 
     async pendingVotes(): Promise<Votes[]> {
         return await this.VotesRepo.find({ where: { isPending: true } });
+    }
+
+    async getVoteId(id: number): Promise<Votes> {
+        return await this.VotesRepo.findOneBy({ id: id });
     }
 }

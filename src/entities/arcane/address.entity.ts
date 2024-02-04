@@ -1,16 +1,14 @@
+import { UserRole } from 'src/custom';
 import {
     Column,
     CreateDateColumn,
     Entity,
+    ManyToMany,
     OneToMany,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import { AddressVote } from './address-vote.entity';
-
-export enum UserRole {
-    Admin = 'admin',
-    Member = 'member',
-}
+import { Votes } from './votes.entity';
+import { Discussions } from './discussion.entity';
 
 @Entity()
 export class Address {
@@ -26,11 +24,20 @@ export class Address {
     })
     role: UserRole;
 
-    @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    createdAt: Date;
+    @Column({ unique: true, nullable: true })
+    vault_admin_address: string;
 
-    @OneToMany(() => AddressVote, (addressVote) => addressVote.address)
-    votePair: AddressVote[];
+    @Column({ unique: true, nullable: true })
+    nft_id: string;
+
+    @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    signUpAt: Date;
+
+    @OneToMany(() => Votes, (vote) => vote.address)
+    votes: Votes[];
+
+    @ManyToMany(() => Discussions, (discussion) => discussion.addresses)
+    discussions: Discussions[];
 
     get isAdmin(): boolean {
         return this.role === UserRole.Admin;
