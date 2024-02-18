@@ -4,7 +4,7 @@ import { Address } from 'src/entities/arcane/address.entity';
 import { Repository } from 'typeorm';
 import { UserRole, VaultNftId } from 'src/custom';
 import {
-    getAdminVaultAddressAndNftId,
+    getVaultAddressAndNftId,
     isWalletContainsBadge,
 } from '../helpers/RadixAPI';
 import * as dotenv from 'dotenv';
@@ -51,7 +51,10 @@ export class AddressService {
         if (!account) {
             return UserRole.Unregistered;
         }
-        const data: VaultNftId = await getAdminVaultAddressAndNftId(address);
+        const data: VaultNftId = await getVaultAddressAndNftId(
+            address,
+            UserRole.Admin
+        );
         account.role = UserRole.Admin;
         account.vault_admin_address = data.vaultAddress;
         account.nft_id = data.nftId;

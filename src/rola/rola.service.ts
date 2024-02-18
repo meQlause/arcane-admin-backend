@@ -8,7 +8,8 @@ import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
 import * as dotenv from 'dotenv';
 import { JwtService } from '@nestjs/jwt';
-import { AuthResponse, JWTData, UserRole } from 'src/custom';
+import { AuthResponse, JWTData, UserRole, VaultNftId } from 'src/custom';
+import { getVaultAddressAndNftId } from 'src/helpers/RadixAPI';
 dotenv.config();
 
 @Injectable()
@@ -71,16 +72,22 @@ export class RolaService {
             access_token: undefined,
             address: address,
             role: UserRole.Unregistered,
+            nft_id: undefined,
         };
         const account = await this.validateAddress(address);
         if (!account) return returnValue;
 
+        const data: VaultNftId = await getVaultAddressAndNftId(
+            address,
+            UserRole.Member
+        );
         const payload: JWTData = {
             address: account.address,
             role: account.role,
         };
         returnValue.access_token = await this.jwtService.signAsync(payload);
         returnValue.role = account.role;
+        returnValue.nft_id = data.nftId;
         return returnValue;
     }
 }

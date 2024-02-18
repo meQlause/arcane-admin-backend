@@ -4,12 +4,14 @@ import {
     Entity,
     JoinColumn,
     ManyToOne,
+    OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import { Address } from './address.entity';
 import { Discussions } from './discussion.entity';
+import { Voters } from './voters.entity';
 @Entity()
 export class Votes {
     @PrimaryGeneratedColumn({ type: 'bigint' })
@@ -18,7 +20,7 @@ export class Votes {
     @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     startDate: Date;
 
-    @CreateDateColumn({ type: 'timestamp' })
+    @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     endDate: Date;
 
     @Column({ type: 'text', nullable: false })
@@ -27,11 +29,20 @@ export class Votes {
     @Column({ type: 'text', nullable: false })
     description: string;
 
+    @Column({ type: 'text', nullable: false })
+    componentAddress: string;
+
     @Column({ type: 'json', nullable: false })
-    vote_choice: Record<string, number>;
+    voteTokenAmount: Record<string, number>;
+
+    @Column({ type: 'json', nullable: false })
+    voteAddressCount: Record<string, number>;
 
     @Column({ type: 'boolean', default: true })
     isPending: boolean;
+
+    @OneToMany(() => Voters, (voters) => voters.vote)
+    voters: Voters[];
 
     @ManyToOne(() => Address, (address) => address.votes)
     @JoinColumn()

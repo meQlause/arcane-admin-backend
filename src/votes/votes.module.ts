@@ -5,11 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Address } from 'src/entities/arcane/address.entity';
 import { Votes } from 'src/entities/arcane/votes.entity';
 import { Discussions } from 'src/entities/arcane/discussion.entity';
+import { Voters } from 'src/entities/arcane/voters.entity';
 @Module({
     imports: [
         TypeOrmModule.forFeature([Address], 'arcane-connection'),
         TypeOrmModule.forFeature([Votes], 'arcane-connection'),
         TypeOrmModule.forFeature([Discussions], 'arcane-connection'),
+        TypeOrmModule.forFeature([Voters], 'arcane-connection'),
     ],
     controllers: [VotesController],
     providers: [VotesService],
