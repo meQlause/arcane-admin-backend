@@ -43,8 +43,8 @@ export class VotesService {
         const component = await getVoteComponentAddress(data.txId.trim());
 
         const vote: Votes = this.VotesRepo.create({
-            // startDate: data.startDate,
-            // endDate: data.endDate,
+            startDate: data.startDate,
+            endDate: data.endDate,
             title: data.title,
             description: data.description,
             isPending: true,
@@ -52,7 +52,11 @@ export class VotesService {
             voteAddressCount: vote_choice,
             componentAddress: component,
         });
-
+        const photos = data.photos.reduce(
+            (obj, key, index) => ({ ...obj, [key]: index }),
+            {}
+        );
+        vote.photos = photos;
         vote.discussion = discussion;
         vote.address = address;
         address.discussions = [discussion];

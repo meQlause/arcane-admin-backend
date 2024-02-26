@@ -33,6 +33,9 @@ export class Votes {
     componentAddress: string;
 
     @Column({ type: 'json', nullable: false })
+    photos: Record<string, number>;
+
+    @Column({ type: 'json', nullable: false })
     voteTokenAmount: Record<string, number>;
 
     @Column({ type: 'json', nullable: false })

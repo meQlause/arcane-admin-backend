@@ -27,7 +27,7 @@ export class RolaService {
         private jwtService: JwtService
     ) {
         this.rolaProperty = Rola({
-            applicationName: `Arcane`,
+            applicationName: `Arcane Labyrinth`,
             dAppDefinitionAddress: `${process.env.DAPPS_DEFINITION_ADDRESS}`,
             networkId: 2,
             expectedOrigin: `${process.env.EXPECTED_ORIGIN}`,

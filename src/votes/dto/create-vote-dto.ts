@@ -1,5 +1,10 @@
-// import { IsArray, IsDateString, IsNotEmpty, IsString } from 'class-validator';
-import { IsArray, IsNotEmpty, IsString } from 'class-validator';
+import {
+    IsArray,
+    IsDateString,
+    IsNotEmpty,
+    IsString,
+    IsUrl,
+} from 'class-validator';
 
 export class CreateVoteDto {
     @IsString()
@@ -22,11 +27,16 @@ export class CreateVoteDto {
     @IsNotEmpty()
     votes: string[];
 
-    // @IsDateString()
-    // @IsNotEmpty()
-    // startDate: Date;
+    @IsArray()
+    @IsNotEmpty()
+    @IsUrl({}, { each: true })
+    photos: string[];
 
-    // @IsDateString()
-    // @IsNotEmpty()
-    // endDate: Date;
+    @IsDateString()
+    @IsNotEmpty()
+    startDate: Date;
+
+    @IsDateString()
+    @IsNotEmpty()
+    endDate: Date;
 }
