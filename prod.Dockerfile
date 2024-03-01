@@ -21,4 +21,4 @@ RUN yarn install --only=production
 
 EXPOSE 4000
 
-RUN yarn run start:prod
+CMD ["yarn", "run", "start:prod"]
