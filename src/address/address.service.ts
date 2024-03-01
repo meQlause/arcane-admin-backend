@@ -1,13 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { UserRole, VaultNftId } from 'src/custom';
+import { Address } from 'src/entities/arcane/address.entity';
 import {
-    Address,
-    UserRole,
-    VaultNftId,
-    getVaultAddressAndNftId,
     isWalletContainsBadge,
-} from '../modules/index';
+    getVaultAddressAndNftId,
+} from 'src/helpers/RadixAPI';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AddressService {

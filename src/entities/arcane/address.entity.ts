@@ -7,7 +7,8 @@ import {
     OneToMany,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Votes, Discussions } from '../../modules/index';
+import { Discussions } from './discussion.entity';
+import { Votes } from './votes.entity';
 
 @Entity()
 export class Address {

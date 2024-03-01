@@ -4,14 +4,12 @@ import { ResultAsync } from 'neverthrow';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
-import {
-    getVaultAddressAndNftId,
-    AuthResponse,
-    UserRole,
-    RolaChallenge,
-    Address,
-} from '../modules/index';
+
 import * as crypto from 'crypto';
+import { AuthResponse, UserRole } from 'src/custom';
+import { Address } from 'src/entities/arcane/address.entity';
+import { RolaChallenge } from 'src/entities/rola-challenge/rola-challenge.entity';
+import { getVaultAddressAndNftId } from 'src/helpers/RadixAPI';
 
 @Injectable()
 export class RolaService {

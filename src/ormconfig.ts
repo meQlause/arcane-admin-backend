@@ -1,11 +1,9 @@
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
-import { RolaChallenge } from 'src/entities/rola-challenge/rola-challenge.entity';
-import { Address } from 'src/entities/arcane/address.entity';
-import { Votes } from 'src/entities/arcane/votes.entity';
-import { Discussions } from 'src/entities/arcane/discussion.entity';
-import { Voters } from 'src/entities/arcane/voters.entity';
-import * as dotenv from 'dotenv';
-dotenv.config();
+import { RolaChallenge } from './entities/rola-challenge/rola-challenge.entity';
+import { Address } from './entities/arcane/address.entity';
+import { Discussions } from './entities/arcane/discussion.entity';
+import { Voters } from './entities/arcane/voters.entity';
+import { Votes } from './entities/arcane/votes.entity';
 
 export const rolaChallenge: PostgresConnectionOptions = {
     type: 'postgres',

@@ -7,14 +7,13 @@ import {
     Put,
     UseGuards,
 } from '@nestjs/common';
-import {
-    RegisterAddressDto,
-    AddressService,
-    JWTGuard,
-    AdminGuard,
-    Address,
-    UserRole,
-} from '../modules/index';
+
+import { UserRole } from 'src/custom';
+import { AddressService } from './address.service';
+import { RegisterAddressDto } from './dto/register-address-dto';
+import { Address } from 'src/entities/arcane/address.entity';
+import { AdminGuard } from 'src/auth/guards/admin-auth.guard';
+import { JWTGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('address')
 export class AddressController {

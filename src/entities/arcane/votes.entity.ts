@@ -8,8 +8,9 @@ import {
     OneToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-
-import { Address, Discussions, Voters } from '../../modules/index';
+import { Address } from './address.entity';
+import { Discussions } from './discussion.entity';
+import { Voters } from './voters.entity';
 
 @Entity()
 export class Votes {

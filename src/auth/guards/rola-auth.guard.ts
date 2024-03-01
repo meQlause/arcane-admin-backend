@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Request } from 'express';
 import { Result, ResultAsync } from 'neverthrow';
 import { RolaError, SignedChallenge } from '@radixdlt/rola';
-import { RolaService } from '../../modules/index';
+import { RolaService } from 'src/rola/rola.service';
 
 @Injectable()
 export class RolaGuard implements CanActivate {
