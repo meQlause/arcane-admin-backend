@@ -9,6 +9,18 @@ COPY . .
 
 RUN yarn build
 
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY --from=build /app/dist ./dist
+
+COPY package*.json ./
+
+RUN yarn install --only=production
+
+RUN rm package*.json
+
 EXPOSE 4000
 
-CMD ["yarn", "run", "start:prod"]
+CMD ["node", "dist/src/main.js"]
