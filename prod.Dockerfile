@@ -19,8 +19,6 @@ COPY package*.json ./
 
 RUN yarn install --only=production
 
-RUN rm package*.json
-
 EXPOSE 4000
 
-CMD ["node", "dist/main.js"]
+RUN yarn run start:prod
