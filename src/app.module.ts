@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { addTransactionalDataSource } from 'typeorm-transactional';
 import { DataSource } from 'typeorm';
 import { AddressModule } from './address/address.module';
-import { rolaChallenge, arcane } from './ormconfig';
+import { rolaChallenge, arcane } from './config/ormconfig';
 import { RolaModule } from './rola/rola.module';
 import { VotesModule } from './votes/votes.module';
 

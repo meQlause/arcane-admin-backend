@@ -5,6 +5,7 @@ import { RolaChallenge } from 'src/entities/rola-challenge/rola-challenge.entity
 import { Address } from 'src/entities/arcane/address.entity';
 import { RolaController } from './rola.controller';
 import { RolaService } from './rola.service';
+import envConfig from 'src/config/env.config';
 
 @Module({
     imports: [
@@ -12,7 +13,7 @@ import { RolaService } from './rola.service';
         TypeOrmModule.forFeature([Address], 'arcane-connection'),
         JwtModule.register({
             global: true,
-            secret: process.env.JWT_SECRET,
+            secret: envConfig().jwtSecret,
             signOptions: { expiresIn: '3600s' },
         }),
     ],

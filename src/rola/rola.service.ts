@@ -10,6 +10,7 @@ import { AuthResponse, UserRole } from 'src/custom';
 import { Address } from 'src/entities/arcane/address.entity';
 import { RolaChallenge } from 'src/entities/rola-challenge/rola-challenge.entity';
 import { getVaultAddressAndNftId } from 'src/helpers/RadixAPI';
+import envConfig from 'src/config/env.config';
 
 @Injectable()
 export class RolaService {
@@ -27,9 +28,9 @@ export class RolaService {
     ) {
         this.rolaProperty = Rola({
             applicationName: `Arcane Labyrinth`,
-            dAppDefinitionAddress: `${process.env.DAPPS_DEFINITION_ADDRESS}`,
+            dAppDefinitionAddress: `${envConfig().dappsDefinitionAddress}`,
             networkId: 2,
-            expectedOrigin: `${process.env.EXPECTED_ORIGIN}`,
+            expectedOrigin: `${envConfig().expectedOrigin}`,
         });
     }
 
