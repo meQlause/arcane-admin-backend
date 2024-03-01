@@ -39,7 +39,11 @@ export class RolaGuard implements CanActivate {
                     this.rola.rolaProperty.verifySignedChallenge(
                         signedChallenge
                     );
-                this.logger.log(data.unwrapOr('Error'));
+                this.logger.log(
+                    data.mapErr((err) => {
+                        this.logger.error(err);
+                    })
+                );
                 return data;
             })
         );
@@ -51,11 +55,13 @@ export class RolaGuard implements CanActivate {
         this.logger.log(`User sign proof :`);
         this.logger.debug(data);
 
-        if ((await this.verifySignedChallenge(data)).isErr()) {
-            if (!this.verifyChallengeData(data)) {
-                this.logger.warn(`Error on Guard : data is not valid`);
-                return false;
-            }
+        const isChallengeStillValid = this.verifyChallengeData(data);
+        if (!isChallengeStillValid) {
+            this.logger.warn(`Error on Guard : data is not valid`);
+            return false;
+        }
+        const isSignedChallengeValid = await this.verifySignedChallenge(data);
+        if (isSignedChallengeValid.isErr()) {
             this.logger.warn(`Error on Guard : signed data is not valid`);
             return false;
         }
