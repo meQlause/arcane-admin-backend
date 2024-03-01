@@ -6,6 +6,7 @@ import { Address } from 'src/entities/arcane/address.entity';
 import { RolaController } from './rola.controller';
 import { RolaService } from './rola.service';
 import envConfig from 'src/config/env.config';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Module({
     imports: [
@@ -18,6 +19,6 @@ import envConfig from 'src/config/env.config';
         }),
     ],
     controllers: [RolaController],
-    providers: [RolaService],
+    providers: [RolaService, LoggerService],
 })
 export class RolaModule {}

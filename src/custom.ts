@@ -148,7 +148,7 @@ export interface Item {
 [];
 export interface ResponseDataEntityState {
     ledger_state: LedgerState;
-    items: Item;
+    items: Item[];
 }
 export interface LedgerState {
     network: string;

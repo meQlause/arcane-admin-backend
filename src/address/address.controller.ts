@@ -14,10 +14,14 @@ import { RegisterAddressDto } from './dto/register-address-dto';
 import { Address } from 'src/entities/arcane/address.entity';
 import { AdminGuard } from 'src/auth/guards/admin-auth.guard';
 import { JWTGuard } from 'src/auth/guards/jwt-auth.guard';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Controller('address')
 export class AddressController {
-    constructor(private readonly addressService: AddressService) {}
+    constructor(
+        private readonly addressService: AddressService,
+        private readonly logger: LoggerService
+    ) {}
 
     /**
      * Retrieves address details based on the provided address.
@@ -28,6 +32,11 @@ export class AddressController {
     @UseGuards(JWTGuard, AdminGuard)
     @Get('get/:address')
     async verifyAddress(@Param('address') address: string): Promise<Address> {
+        const methodName = 'verifyAddress';
+        const timestamp = new Date().toISOString();
+        this.logger.log(
+            `${timestamp} | Method: ${methodName} | Params: ${address}`
+        );
         return await this.addressService.get(address);
     }
 
@@ -39,6 +48,9 @@ export class AddressController {
     @UseGuards(JWTGuard, AdminGuard)
     @Get('get-admins')
     async getAdmins(): Promise<Address[]> {
+        const methodName = 'get-admins';
+        const timestamp = new Date().toISOString();
+        this.logger.log(`${timestamp} | Method: ${methodName} | Params: -`);
         return await this.addressService.getAdmins();
     }
 
@@ -52,6 +64,11 @@ export class AddressController {
     async register(
         @Body() registerAddress: RegisterAddressDto
     ): Promise<Address> {
+        const methodName = 'register';
+        const timestamp = new Date().toISOString();
+        this.logger.log(
+            `${timestamp} | Method: ${methodName} | Params: ${registerAddress}`
+        );
         return await this.addressService.register(
             registerAddress.address,
             UserRole.Member
@@ -67,6 +84,11 @@ export class AddressController {
     @UseGuards(JWTGuard, AdminGuard)
     @Put('make-admin/:address')
     async makeAdmin(@Param('address') address: string): Promise<string> {
+        const methodName = 'make-admin';
+        const timestamp = new Date().toISOString();
+        this.logger.log(
+            `${timestamp} | Method: ${methodName} | Params: ${address}`
+        );
         return await this.addressService.makeAdmin(address);
     }
 
@@ -79,6 +101,11 @@ export class AddressController {
     @UseGuards(JWTGuard, AdminGuard)
     @Put('unmake-admin/:address')
     async unmakeAdmin(@Param('address') address: string): Promise<string> {
+        const methodName = 'unmakeAdmin';
+        const timestamp = new Date().toISOString();
+        this.logger.log(
+            `${timestamp} | Method: ${methodName} | Params: ${address}`
+        );
         return await this.addressService.unmakeAdmin(address);
     }
 
@@ -91,6 +118,11 @@ export class AddressController {
     @UseGuards(JWTGuard)
     @Get('votes/:address')
     async getAddressVotes(@Param('address') address: string): Promise<Address> {
+        const methodName = 'getAddressVotes';
+        const timestamp = new Date().toISOString();
+        this.logger.log(
+            `${timestamp} | Method: ${methodName} | Params: ${address}`
+        );
         return await this.addressService.getAddressVotes(address);
     }
 }

@@ -6,6 +6,7 @@ import { Voters } from 'src/entities/arcane/voters.entity';
 import { Votes } from 'src/entities/arcane/votes.entity';
 import { VotesController } from './votes.controller';
 import { VotesService } from './votes.service';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Module({
     imports: [
@@ -15,6 +16,6 @@ import { VotesService } from './votes.service';
         TypeOrmModule.forFeature([Voters], 'arcane-connection'),
     ],
     controllers: [VotesController],
-    providers: [VotesService],
+    providers: [VotesService, LoggerService],
 })
 export class VotesModule {}

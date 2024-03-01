@@ -2,10 +2,14 @@ import { Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
 import { RolaService } from './rola.service';
 import { RolaGuard } from 'src/auth/guards/rola-auth.guard';
 import { AuthResponse } from 'src/custom';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Controller('rola')
 export class RolaController {
-    constructor(private readonly rola: RolaService) {}
+    constructor(
+        private readonly rola: RolaService,
+        private readonly logger: LoggerService
+    ) {}
 
     /**
      * Generates a challenge for Rola authentication.
@@ -14,6 +18,9 @@ export class RolaController {
      */
     @Get('generate-challenge')
     async generateChallenge(): Promise<{ challenge: string }> {
+        const methodName = 'generateChallenge';
+        const timestamp = new Date().toISOString();
+        this.logger.log(`${timestamp} | Method: ${methodName} | Params: -`);
         const { challenge } = await this.rola.createChallenge();
         return { challenge: challenge };
     }
@@ -27,6 +34,11 @@ export class RolaController {
     @UseGuards(RolaGuard)
     @Post('verify')
     async verify(@Request() req: any): Promise<AuthResponse> {
+        const methodName = 'verify';
+        const timestamp = new Date().toISOString();
+        this.logger.log(
+            `${timestamp} | Method: ${methodName} | Params: ${req}`
+        );
         return await this.rola.login(req.address);
     }
 }

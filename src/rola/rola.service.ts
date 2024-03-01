@@ -11,6 +11,7 @@ import { Address } from 'src/entities/arcane/address.entity';
 import { RolaChallenge } from 'src/entities/rola-challenge/rola-challenge.entity';
 import { getVaultAddressAndNftId } from 'src/helpers/RadixAPI';
 import envConfig from 'src/config/env.config';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Injectable()
 export class RolaService {
@@ -24,7 +25,8 @@ export class RolaService {
         private readonly rolaChallengeRepo: Repository<RolaChallenge>,
         @InjectRepository(Address, 'arcane-connection')
         private readonly AddressRepo: Repository<Address>,
-        private jwtService: JwtService
+        private jwtService: JwtService,
+        private readonly logger: LoggerService
     ) {
         this.rolaProperty = Rola({
             applicationName: `Arcane Labyrinth`,
@@ -41,6 +43,7 @@ export class RolaService {
      * @returns A hexadecimal string representing the generated random bytes.
      */
     private secureRandom(byteCount: number): string {
+        this.logger.log('Generating random hex.');
         return crypto.randomBytes(byteCount).toString('hex');
     }
 
@@ -51,6 +54,7 @@ export class RolaService {
      * @returns Promise<Address> The validated address object if found, otherwise null.
      */
     private async validateAddress(address: string): Promise<Address> {
+        this.logger.log('Getting address information.');
         return await this.AddressRepo.findOne({
             where: { address: address },
         });
@@ -62,6 +66,7 @@ export class RolaService {
      * @returns Promise<RolaChallenge> The created Rola authentication challenge.
      */
     async createChallenge(): Promise<RolaChallenge> {
+        this.logger.log('generating challenge.');
         const challenge = this.secureRandom(32);
         const expires = Date.now() + 1000 * 60 * 5;
         const challengeToSave = this.rolaChallengeRepo.create({
@@ -78,11 +83,18 @@ export class RolaService {
      * @returns Promise<boolean> True if the challenge is valid and not expired, otherwise false.
      */
     async verifyChallenge(input: string): Promise<boolean> {
+        this.logger.debug(`rola property ${this.rolaProperty}`);
+        this.logger.log('Getting challenge information.');
         const challenge = await this.rolaChallengeRepo.findOne({
             where: { challenge: input },
         });
-        if (!challenge) return false;
+        if (!challenge) {
+            this.logger.warn('Challenge is not valid (expired).');
+            return false;
+        }
+        this.logger.log('Challenge valid, Remove from database.');
         await this.rolaChallengeRepo.remove(challenge);
+        this.logger.warn('Valid.');
         return challenge.expires > Date.now();
     }
 
@@ -96,6 +108,7 @@ export class RolaService {
         try {
             const account = await this.validateAddress(address);
             if (!account) {
+                this.logger.warn('Address is not valid.');
                 return {
                     access_token: undefined,
                     address: address,
@@ -103,7 +116,7 @@ export class RolaService {
                     nft_id: undefined,
                 };
             }
-
+            this.logger.log('address valid, validate data.');
             const [data, accessToken] = await Promise.all([
                 getVaultAddressAndNftId(address, UserRole.Member),
                 this.jwtService.signAsync({
@@ -111,7 +124,7 @@ export class RolaService {
                     role: account.role,
                 }),
             ]);
-
+            this.logger.log('Valid.');
             return {
                 access_token: accessToken,
                 address: account.address,
@@ -119,7 +132,8 @@ export class RolaService {
                 nft_id: data.nftId,
             };
         } catch (error) {
-            console.error('Login failed:', error);
+            this.logger.fatal(`Error ${error}.`);
+
             throw new UnauthorizedException('Login failed');
         }
     }

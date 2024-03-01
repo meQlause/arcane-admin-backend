@@ -3,10 +3,14 @@ import { Request } from 'express';
 import { Result, ResultAsync } from 'neverthrow';
 import { RolaError, SignedChallenge } from '@radixdlt/rola';
 import { RolaService } from 'src/rola/rola.service';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Injectable()
 export class RolaGuard implements CanActivate {
-    constructor(private rola: RolaService) {}
+    constructor(
+        private rola: RolaService,
+        private readonly logger: LoggerService
+    ) {}
 
     private convertData(data: any): SignedChallenge[] {
         return data as SignedChallenge[];
@@ -38,14 +42,21 @@ export class RolaGuard implements CanActivate {
         const data = this.convertData(
             context.switchToHttp().getRequest<Request>().body
         );
+        this.logger.log(`User sign proof : ${data}`);
 
-        if (!this.verifyChallengeData(data)) return false;
+        if (!this.verifyChallengeData(data)) {
+            this.logger.warn(`Error on Guard : data is not valid`);
+            return false;
+        }
 
-        if ((await this.verifySignedChallenge(data)).isErr()) return false;
+        if ((await this.verifySignedChallenge(data)).isErr()) {
+            this.logger.warn(`Error on Guard : signed data is not valid`);
+            return false;
+        }
 
         context.switchToHttp().getRequest<Request>()['address'] =
             data[0].address;
-
+        this.logger.log(`Rola Guard passed`);
         return true;
     }
 }

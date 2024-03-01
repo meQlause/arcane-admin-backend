@@ -13,6 +13,7 @@ import { Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 import { AddVoteDto } from './dto/add-vote-dto';
 import { CreateVoteDto } from './dto/create-vote-dto';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Injectable()
 export class VotesService {
@@ -24,7 +25,8 @@ export class VotesService {
         @InjectRepository(Discussions, 'arcane-connection')
         private readonly DiscussionRepo: Repository<Discussions>,
         @InjectRepository(Voters, 'arcane-connection')
-        private readonly VotersRepo: Repository<Voters>
+        private readonly VotersRepo: Repository<Voters>,
+        private readonly logger: LoggerService
     ) {}
 
     /**
@@ -46,11 +48,14 @@ export class VotesService {
      */
     @Transactional({ connectionName: 'arcane-datasource' })
     async createVote(data: CreateVoteDto): Promise<Votes> {
+        this.logger.log('Getting address information.');
         const address: Address = await this.isRegistered(data.address);
         if (!address) {
+            this.logger.warn('Address is not registered.');
             throw new UnauthorizedException('Address is unregistered');
         }
 
+        this.logger.log('Getting transaction information.');
         const component = await getVoteComponentAddress(data.txId.trim());
 
         const voteChoice = data.votes.reduce(
@@ -81,7 +86,7 @@ export class VotesService {
 
         await this.DiscussionRepo.save(discussion);
         await this.AddressRepo.save(address);
-
+        this.logger.log('Vote created.');
         return await this.VotesRepo.save(vote);
     }
 
@@ -91,6 +96,7 @@ export class VotesService {
      * @returns Promise<Votes[]> Array of votes.
      */
     async getVotes(): Promise<Votes[]> {
+        this.logger.log('Get Votes data.');
         return await this.VotesRepo.createQueryBuilder('votes')
             .leftJoinAndSelect('votes.address', 'address')
             .getMany();
@@ -103,6 +109,7 @@ export class VotesService {
      * @returns Promise<Votes> The vote.
      */
     async getVoteId(id: number): Promise<Votes> {
+        this.logger.log('Get Votes data by ID.');
         return await this.VotesRepo.createQueryBuilder('votes')
             .leftJoinAndSelect('votes.address', 'address')
             .leftJoinAndSelect('votes.voters', 'voters')
@@ -119,15 +126,18 @@ export class VotesService {
      */
     @Transactional({ connectionName: 'arcane-datasource' })
     async addVote(addVote: AddVoteDto): Promise<Voters> {
+        this.logger.log('Getting Vote information.');
         const vote = await this.VotesRepo.findOne({
             where: { id: addVote.voteId },
         });
         if (!vote) {
-            throw new UnauthorizedException('Vote not found');
+            this.logger.fatal(`Vote doesn't exist.`);
+            throw new BadRequestException('Vote not found');
         }
 
         const key = addVote.key;
         if (!(key in vote.voteAddressCount && key in vote.voteTokenAmount)) {
+            this.logger.fatal(`Vote key doesn't exist.`);
             throw new BadRequestException('Key not found');
         }
 
@@ -145,7 +155,7 @@ export class VotesService {
             this.VotesRepo.save(vote),
             this.VotersRepo.save(voter),
         ]);
-
+        this.logger.log(`Voting Success.`);
         return voter;
     }
 }

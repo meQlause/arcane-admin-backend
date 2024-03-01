@@ -8,16 +8,21 @@ import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import envConfig from 'src/config/env.config';
 import { JWTData } from 'src/custom';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Injectable()
 export class JWTGuard implements CanActivate {
-    constructor(private jwtService: JwtService) {}
+    constructor(
+        private readonly jwtService: JwtService,
+        private readonly logger: LoggerService
+    ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
         const token = this.extractTokenFromHeader(request);
 
         if (!token) {
+            this.logger.warn('Error on Guard : Token not provided.');
             throw new UnauthorizedException('Token not provided.');
         }
 
@@ -26,9 +31,11 @@ export class JWTGuard implements CanActivate {
                 secret: `${envConfig().jwtSecret}`,
             });
             request['account'] = payload;
-        } catch {
+        } catch (error) {
+            this.logger.warn(`Error on Guard : Invalid token: ${error}`);
             throw new UnauthorizedException('Invalid token.');
         }
+        this.logger.warn(`Jwt Guard passed`);
         return true;
     }
 

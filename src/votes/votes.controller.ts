@@ -20,10 +20,14 @@ import { AddVoteDto } from './dto/add-vote-dto';
 import { CreateVoteDto } from './dto/create-vote-dto';
 import { PhotoUploadInterceptor } from './interceptors/photo-upload.interceptor';
 import { VotesService } from './votes.service';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Controller('votes')
 export class VotesController {
-    constructor(private readonly votesService: VotesService) {}
+    constructor(
+        private readonly votesService: VotesService,
+        private readonly logger: LoggerService
+    ) {}
 
     /**
      * Creates a new vote.
@@ -34,6 +38,11 @@ export class VotesController {
     @UseGuards(JWTGuard)
     @Post('create-vote')
     async createVote(@Body() createVote: CreateVoteDto): Promise<Votes> {
+        const methodName = 'createVote';
+        const timestamp = new Date().toISOString();
+        this.logger.log(
+            `${timestamp} | Method: ${methodName} | Params: ${createVote}`
+        );
         return this.votesService.createVote(createVote);
     }
 
@@ -53,7 +62,13 @@ export class VotesController {
     )
     @Post('upload-pict')
     async uploadPict(@UploadedFile() photo: Express.Multer.File) {
+        const methodName = 'uploadPict';
+        const timestamp = new Date().toISOString();
+        this.logger.log(
+            `${timestamp} | Method: ${methodName} | Params: ${photo}`
+        );
         if (!photo) {
+            this.logger.fatal('File is not a picture');
             throw new BadRequestException('File is not a picture');
         }
         return `https://arcanedev.site:4001/votes/pict/${photo.filename}`;
@@ -67,6 +82,11 @@ export class VotesController {
      */
     @Get('picts/:filename')
     async getPict(@Param('filename') filename: string, @Res() res: Response) {
+        const methodName = 'getPict';
+        const timestamp = new Date().toISOString();
+        this.logger.log(
+            `${timestamp} | Method: ${methodName} | Params: ${filename}`
+        );
         res.sendFile(filename, { root: './uploads' });
     }
 
@@ -77,6 +97,9 @@ export class VotesController {
      */
     @Get('get-votes')
     async getVotes(): Promise<Votes[]> {
+        const methodName = 'getVotes';
+        const timestamp = new Date().toISOString();
+        this.logger.log(`${timestamp} | Method: ${methodName} | Params: -`);
         return this.votesService.getVotes();
     }
 
@@ -88,6 +111,9 @@ export class VotesController {
      */
     @Get('vote/:id')
     async getVoteId(@Param('id') id: number): Promise<Votes> {
+        const methodName = 'getVoteId';
+        const timestamp = new Date().toISOString();
+        this.logger.log(`${timestamp} | Method: ${methodName} | Params: ${id}`);
         return await this.votesService.getVoteId(id);
     }
 
@@ -100,6 +126,11 @@ export class VotesController {
     @UseGuards(JWTGuard)
     @Post('add-vote')
     async addVote(@Body() addVote: AddVoteDto): Promise<Voters> {
+        const methodName = 'addVote';
+        const timestamp = new Date().toISOString();
+        this.logger.log(
+            `${timestamp} | Method: ${methodName} | Params: ${addVote}`
+        );
         return await this.votesService.addVote(addVote);
     }
 }

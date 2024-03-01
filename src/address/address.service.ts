@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+    Injectable,
+    LoggerService,
+    UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRole, VaultNftId } from 'src/custom';
 import { Address } from 'src/entities/arcane/address.entity';
@@ -12,7 +16,8 @@ import { Repository } from 'typeorm';
 export class AddressService {
     constructor(
         @InjectRepository(Address, 'arcane-connection')
-        private readonly addressRepo: Repository<Address>
+        private readonly addressRepo: Repository<Address>,
+        private readonly logger: LoggerService
     ) {}
 
     /**
@@ -21,6 +26,7 @@ export class AddressService {
      * @returns Promise<Address[]> Array of Address objects.
      */
     async getAdmins(): Promise<Address[]> {
+        this.logger.log('Getting list of admins.');
         return await this.addressRepo.find({
             where: { role: UserRole.Admin },
         });
@@ -35,13 +41,16 @@ export class AddressService {
      * @throws UnauthorizedException if the address is not a valid admin or member.
      */
     async register(address: string, role: UserRole): Promise<Address> {
+        this.logger.log('Getting wallet information.');
         const userRole: UserRole = await isWalletContainsBadge(address);
         if (userRole !== UserRole.Admin && userRole !== UserRole.Member) {
+            this.logger.warn('address does not contain admin or member badge.');
+            this.logger.fatal('Error.');
             throw new UnauthorizedException(
                 `User ${address} is not a valid admin or member`
             );
         }
-
+        this.logger.log('Address valid.');
         const registeredAddress = this.addressRepo.create({
             address: address,
             role: role,
@@ -56,6 +65,7 @@ export class AddressService {
      * @returns Promise<Address> Address object containing details.
      */
     async get(address: string): Promise<Address | null> {
+        this.logger.log('Getting address information.');
         return await this.addressRepo.findOne({ where: { address } });
     }
 
@@ -66,14 +76,18 @@ export class AddressService {
      * @returns Promise<string> The address with admin privileges.
      */
     async makeAdmin(address: string): Promise<string> {
+        this.logger.log('Getting address information.');
         const account = await this.addressRepo.findOne({ where: { address } });
         if (!account) {
+            this.logger.warn('This user is not a member of Arcane.');
             return UserRole.Unregistered;
         }
+        this.logger.warn('Getting nftId and Vault Address.');
         const data: VaultNftId = await getVaultAddressAndNftId(
             address,
             UserRole.Admin
         );
+        this.logger.warn('Success.');
         account.role = UserRole.Admin;
         account.vault_admin_address = data.vaultAddress;
         account.nft_id = data.nftId;
