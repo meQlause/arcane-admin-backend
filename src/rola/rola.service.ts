@@ -83,7 +83,8 @@ export class RolaService {
      * @returns Promise<boolean> True if the challenge is valid and not expired, otherwise false.
      */
     async verifyChallenge(input: string): Promise<boolean> {
-        this.logger.debug(`rola property ${this.rolaProperty}`);
+        this.logger.debug(`rola property : `);
+        this.logger.debug(this.rolaProperty);
         this.logger.log('Getting challenge information.');
         const challenge = await this.rolaChallengeRepo.findOne({
             where: { challenge: input },
@@ -94,7 +95,8 @@ export class RolaService {
         }
         this.logger.log('Challenge valid, Remove from database.');
         await this.rolaChallengeRepo.remove(challenge);
-        this.logger.warn('Valid.');
+        this.logger.log('Valid.');
+        this.logger.log(challenge.expires > Date.now());
         return challenge.expires > Date.now();
     }
 

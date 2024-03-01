@@ -33,16 +33,23 @@ export class RolaGuard implements CanActivate {
         data: SignedChallenge[]
     ): Promise<Result<void[], RolaError>> {
         return await ResultAsync.combine(
-            data.map((signedChallenge) =>
-                this.rola.rolaProperty.verifySignedChallenge(signedChallenge)
-            )
+            data.map((signedChallenge) => {
+                this.logger.log('verifying signed challenge');
+                const data =
+                    this.rola.rolaProperty.verifySignedChallenge(
+                        signedChallenge
+                    );
+                this.logger.debug(data);
+                return data;
+            })
         );
     }
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const data = this.convertData(
             context.switchToHttp().getRequest<Request>().body
         );
-        this.logger.log(`User sign proof : ${data}`);
+        this.logger.log(`User sign proof :`);
+        this.logger.debug(data);
 
         if (!this.verifyChallengeData(data)) {
             this.logger.warn(`Error on Guard : data is not valid`);

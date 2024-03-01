@@ -33,10 +33,7 @@ export class AddressController {
     @Get('get/:address')
     async verifyAddress(@Param('address') address: string): Promise<Address> {
         const methodName = 'verifyAddress';
-        const timestamp = new Date().toISOString();
-        this.logger.log(
-            `${timestamp} | Method: ${methodName} | Params: ${address}`
-        );
+        this.logger.log(`$Method: ${methodName} | Params: ${address}`);
         return await this.addressService.get(address);
     }
 
@@ -49,8 +46,7 @@ export class AddressController {
     @Get('get-admins')
     async getAdmins(): Promise<Address[]> {
         const methodName = 'get-admins';
-        const timestamp = new Date().toISOString();
-        this.logger.log(`${timestamp} | Method: ${methodName} | Params: -`);
+        this.logger.log(`Method: ${methodName} | Params: -`);
         return await this.addressService.getAdmins();
     }
 
@@ -65,10 +61,7 @@ export class AddressController {
         @Body() registerAddress: RegisterAddressDto
     ): Promise<Address> {
         const methodName = 'register';
-        const timestamp = new Date().toISOString();
-        this.logger.log(
-            `${timestamp} | Method: ${methodName} | Params: ${registerAddress}`
-        );
+        this.logger.log(`$Method: ${methodName} | Params: ${registerAddress}`);
         return await this.addressService.register(
             registerAddress.address,
             UserRole.Member
@@ -85,10 +78,7 @@ export class AddressController {
     @Put('make-admin/:address')
     async makeAdmin(@Param('address') address: string): Promise<string> {
         const methodName = 'make-admin';
-        const timestamp = new Date().toISOString();
-        this.logger.log(
-            `${timestamp} | Method: ${methodName} | Params: ${address}`
-        );
+        this.logger.log(`$Method: ${methodName} | Params: ${address}`);
         return await this.addressService.makeAdmin(address);
     }
 
@@ -102,10 +92,7 @@ export class AddressController {
     @Put('unmake-admin/:address')
     async unmakeAdmin(@Param('address') address: string): Promise<string> {
         const methodName = 'unmakeAdmin';
-        const timestamp = new Date().toISOString();
-        this.logger.log(
-            `${timestamp} | Method: ${methodName} | Params: ${address}`
-        );
+        this.logger.log(`$Method: ${methodName} | Params: ${address}`);
         return await this.addressService.unmakeAdmin(address);
     }
 
@@ -119,10 +106,7 @@ export class AddressController {
     @Get('votes/:address')
     async getAddressVotes(@Param('address') address: string): Promise<Address> {
         const methodName = 'getAddressVotes';
-        const timestamp = new Date().toISOString();
-        this.logger.log(
-            `${timestamp} | Method: ${methodName} | Params: ${address}`
-        );
+        this.logger.log(`$Method: ${methodName} | Params: ${address}`);
         return await this.addressService.getAddressVotes(address);
     }
 }
