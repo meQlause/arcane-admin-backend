@@ -17,17 +17,30 @@ export class AddressService {
         private readonly addressRepo: Repository<Address>
     ) {}
 
+    /**
+     * Retrieves a list of addresses associated with administrators.
+     *
+     * @returns Promise<Address[]> Array of Address objects.
+     */
     async getAdmins(): Promise<Address[]> {
         return await this.addressRepo.find({
             where: { role: UserRole.Admin },
         });
     }
 
+    /**
+     * Registers a new address.
+     *
+     * @param address The address to register.
+     * @param role The role of the address.
+     * @returns Promise<Address> Registered Address object.
+     * @throws UnauthorizedException if the address is not a valid admin or member.
+     */
     async register(address: string, role: UserRole): Promise<Address> {
-        const userRole = await isWalletContainsBadge(address);
+        const userRole: UserRole = await isWalletContainsBadge(address);
         if (userRole !== UserRole.Admin && userRole !== UserRole.Member) {
             throw new UnauthorizedException(
-                `User ${address} is not mint badge member yet`
+                `User ${address} is not a valid admin or member`
             );
         }
 
@@ -38,16 +51,24 @@ export class AddressService {
         return await this.addressRepo.save(registeredAddress);
     }
 
-    async get(address: string): Promise<Address> {
-        const account = await this.addressRepo.findOneBy({ address });
-        if (!account) {
-            return null;
-        }
-        return account;
+    /**
+     * Retrieves address details based on the provided address.
+     *
+     * @param address The address to retrieve details for.
+     * @returns Promise<Address> Address object containing details.
+     */
+    async get(address: string): Promise<Address | null> {
+        return await this.addressRepo.findOne({ where: { address } });
     }
 
+    /**
+     * Grants admin privileges to an address.
+     *
+     * @param address The address to grant admin privileges.
+     * @returns Promise<string> The address with admin privileges.
+     */
     async makeAdmin(address: string): Promise<string> {
-        const account = await this.addressRepo.findOneBy({ address });
+        const account = await this.addressRepo.findOne({ where: { address } });
         if (!account) {
             return UserRole.Unregistered;
         }
@@ -62,8 +83,14 @@ export class AddressService {
         return account.address;
     }
 
+    /**
+     * Removes admin privileges from an address.
+     *
+     * @param address The address to revoke admin privileges.
+     * @returns Promise<string> The address without admin privileges.
+     */
     async unmakeAdmin(address: string): Promise<string> {
-        const account = await this.addressRepo.findOneBy({ address });
+        const account = await this.addressRepo.findOne({ where: { address } });
         if (!account) {
             return UserRole.Unregistered;
         }
@@ -73,11 +100,20 @@ export class AddressService {
         if ((await isWalletContainsBadge(address)) === UserRole.Unregistered) {
             this.addressRepo.remove(account);
         }
-        await this.addressRepo.save(account);
-        console.log(account);
+        if ((await isWalletContainsBadge(address)) === UserRole.Unregistered) {
+            await this.addressRepo.remove(account);
+        } else {
+            await this.addressRepo.save(account);
+        }
         return account.address;
     }
 
+    /**
+     * Retrieves voting information related to an address.
+     *
+     * @param address The address to query votes for.
+     * @returns Promise<Address> Voting data related to the address.
+     */
     async getAddressVotes(address: string): Promise<Address> {
         return await this.addressRepo
             .createQueryBuilder('address')

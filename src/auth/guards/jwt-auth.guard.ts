@@ -15,16 +15,18 @@ export class JWTGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
         const token = this.extractTokenFromHeader(request);
+
         if (!token) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException('Token not provided.');
         }
+
         try {
             const payload: JWTData = await this.jwtService.verifyAsync(token, {
                 secret: `${process.env.JWT_SECRET}`,
             });
             request['account'] = payload;
         } catch {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException('Invalid token.');
         }
         return true;
     }

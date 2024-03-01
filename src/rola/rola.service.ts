@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Rola, RolaError, SignedChallenge } from '@radixdlt/rola';
 import { ResultAsync } from 'neverthrow';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,7 +8,7 @@ import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
 import * as dotenv from 'dotenv';
 import { JwtService } from '@nestjs/jwt';
-import { AuthResponse, JWTData, UserRole, VaultNftId } from 'src/custom';
+import { AuthResponse, UserRole } from 'src/custom';
 import { getVaultAddressAndNftId } from 'src/helpers/RadixAPI';
 dotenv.config();
 
@@ -34,20 +34,33 @@ export class RolaService {
         });
     }
 
+    /**
+     * Generates secure random bytes and returns them as a hexadecimal string.
+     *
+     * @param byteCount The number of random bytes to generate.
+     * @returns A hexadecimal string representing the generated random bytes.
+     */
     private secureRandom(byteCount: number): string {
         return crypto.randomBytes(byteCount).toString('hex');
     }
 
+    /**
+     * Validates an address by searching for it in the database.
+     *
+     * @param address The address to validate.
+     * @returns Promise<Address> The validated address object if found, otherwise null.
+     */
     private async validateAddress(address: string): Promise<Address> {
-        const account = await this.AddressRepo.findOne({
+        return await this.AddressRepo.findOne({
             where: { address: address },
         });
-        if (!account) {
-            return null;
-        }
-        return account;
     }
 
+    /**
+     * Creates a new Rola authentication challenge.
+     *
+     * @returns Promise<RolaChallenge> The created Rola authentication challenge.
+     */
     async createChallenge(): Promise<RolaChallenge> {
         const challenge = this.secureRandom(32);
         const expires = Date.now() + 1000 * 60 * 5;
@@ -58,6 +71,12 @@ export class RolaService {
         return await this.rolaChallengeRepo.save(challengeToSave);
     }
 
+    /**
+     * Verifies a Rola authentication challenge.
+     *
+     * @param input The input challenge string to verify.
+     * @returns Promise<boolean> True if the challenge is valid and not expired, otherwise false.
+     */
     async verifyChallenge(input: string): Promise<boolean> {
         const challenge = await this.rolaChallengeRepo.findOne({
             where: { challenge: input },
@@ -67,27 +86,41 @@ export class RolaService {
         return challenge.expires > Date.now();
     }
 
+    /**
+     * Logs in a user and generates an authentication response.
+     *
+     * @param address The user's address for authentication.
+     * @returns Promise<AuthResponse> The authentication response containing access token, user's address, role, and NFT ID (if applicable).
+     */
     async login(address: string): Promise<AuthResponse> {
-        const returnValue: AuthResponse = {
-            access_token: undefined,
-            address: address,
-            role: UserRole.Unregistered,
-            nft_id: undefined,
-        };
-        const account = await this.validateAddress(address);
-        if (!account) return returnValue;
+        try {
+            const account = await this.validateAddress(address);
+            if (!account) {
+                return {
+                    access_token: undefined,
+                    address: address,
+                    role: UserRole.Unregistered,
+                    nft_id: undefined,
+                };
+            }
 
-        const data: VaultNftId = await getVaultAddressAndNftId(
-            address,
-            UserRole.Member
-        );
-        const payload: JWTData = {
-            address: account.address,
-            role: account.role,
-        };
-        returnValue.access_token = await this.jwtService.signAsync(payload);
-        returnValue.role = account.role;
-        returnValue.nft_id = data.nftId;
-        return returnValue;
+            const [data, accessToken] = await Promise.all([
+                getVaultAddressAndNftId(address, UserRole.Member),
+                this.jwtService.signAsync({
+                    address: account.address,
+                    role: account.role,
+                }),
+            ]);
+
+            return {
+                access_token: accessToken,
+                address: account.address,
+                role: account.role,
+                nft_id: data.nftId,
+            };
+        } catch (error) {
+            console.error('Login failed:', error);
+            throw new UnauthorizedException('Login failed');
+        }
     }
 }

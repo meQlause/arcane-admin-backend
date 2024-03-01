@@ -17,70 +17,85 @@ import { JWTGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AddVoteDto } from './dto/add-vote-dto';
 import { Voters } from 'src/entities/arcane/voters.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
 import { Response } from 'express';
+import { PhotoUploadInterceptor } from './interceptors/photo-upload.interceptor';
 
 @Controller('votes')
 export class VotesController {
     constructor(private readonly votesService: VotesService) {}
 
+    /**
+     * Creates a new vote.
+     *
+     * @param createVote The data for creating the vote.
+     * @returns Promise<Votes> The newly created vote object.
+     */
     @UseGuards(JWTGuard)
     @Post('create-vote')
     async createVote(@Body() createVote: CreateVoteDto): Promise<Votes> {
         return this.votesService.createVote(createVote);
     }
 
+    /**
+     * Uploads pictures for votes.
+     *
+     * @param photo The uploaded photo.
+     * @returns Promise<string> The URL of the uploaded picture.
+     * @throws BadRequestException if the file is not a picture or exceeds the size limit.
+     */
     @UseGuards(JWTGuard)
     @UseInterceptors(
-        FileInterceptor('photos', {
-            storage: diskStorage({
-                destination: './uploads',
-                filename: (req, file, cb) => {
-                    const uniqueName =
-                        'file-' +
-                        Date.now() +
-                        '-' +
-                        Math.floor(Math.random() * 1000000) +
-                        '.' +
-                        file.mimetype.split('/')[1];
-
-                    cb(null, uniqueName);
-                },
-            }),
-            fileFilter: (req, file, cb) => {
-                if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-                    return cb(null, false);
-                }
-                if (file.size > 2000000) {
-                    return cb(null, false);
-                }
-                return cb(null, true);
-            },
-        })
+        FileInterceptor(
+            'photo',
+            new PhotoUploadInterceptor().createMulterOptions()
+        )
     )
-    @Post('upload-picts')
-    async uploadPict(@UploadedFile() photos: Express.Multer.File) {
-        if (!photos) {
-            throw new BadRequestException('File is not a pict');
+    @Post('upload-pict')
+    async uploadPict(@UploadedFile() photo: Express.Multer.File) {
+        if (!photo) {
+            throw new BadRequestException('File is not a picture');
         }
-        return `https://host.docker.internal:4001/votes/picts/${photos.filename}`;
+        return `https://host.docker.internal:4001/votes/pict/${photo.filename}`;
     }
 
+    /**
+     * Retrieves a picture by filename.
+     *
+     * @param filename The filename of the picture.
+     * @param res The response object to send the file.
+     */
     @Get('picts/:filename')
     async getPict(@Param('filename') filename: string, @Res() res: Response) {
         res.sendFile(filename, { root: './uploads' });
     }
 
+    /**
+     * Retrieves all votes.
+     *
+     * @returns Promise<Votes[]> An array of all vote objects.
+     */
     @Get('get-votes')
     async getVotes(): Promise<Votes[]> {
         return this.votesService.getVotes();
     }
 
+    /**
+     * Retrieves a vote by ID.
+     *
+     * @param id The ID of the vote.
+     * @returns Promise<Votes> The vote object.
+     */
     @Get('vote/:id')
     async getVoteId(@Param('id') id: number): Promise<Votes> {
         return await this.votesService.getVoteId(id);
     }
 
+    /**
+     * Adds a vote.
+     *
+     * @param addVote The data for adding the vote.
+     * @returns Promise<Voters> The newly added voter object.
+     */
     @UseGuards(JWTGuard)
     @Post('add-vote')
     async addVote(@Body() addVote: AddVoteDto): Promise<Voters> {

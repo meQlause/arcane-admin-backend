@@ -12,9 +12,12 @@ export class AdminGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const account: JWTData = context.switchToHttp().getRequest().account;
-        if (!account) throw new UnauthorizedException();
-        if (!(account.role === UserRole.Admin))
-            throw new UnauthorizedException();
+        if (!account) {
+            throw new UnauthorizedException('Account not found.');
+        }
+        if (!(account.role === UserRole.Admin)) {
+            throw new UnauthorizedException('Insufficient privileges.');
+        }
         return true;
     }
 }
