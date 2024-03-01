@@ -2,10 +2,10 @@ import {
     CanActivate,
     ExecutionContext,
     Injectable,
-    LoggerService,
     UnauthorizedException,
 } from '@nestjs/common';
 import { JWTData, UserRole } from 'src/custom';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Injectable()
 export class AdminGuard implements CanActivate {

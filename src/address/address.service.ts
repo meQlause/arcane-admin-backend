@@ -1,8 +1,4 @@
-import {
-    Injectable,
-    LoggerService,
-    UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRole, VaultNftId } from 'src/custom';
 import { Address } from 'src/entities/arcane/address.entity';
@@ -10,6 +6,7 @@ import {
     isWalletContainsBadge,
     getVaultAddressAndNftId,
 } from 'src/helpers/RadixAPI';
+import { LoggerService } from 'src/logger/logger.service';
 import { Repository } from 'typeorm';
 
 @Injectable()
