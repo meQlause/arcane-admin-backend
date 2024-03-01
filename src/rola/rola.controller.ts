@@ -1,7 +1,5 @@
 import { Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
-import { RolaService } from './rola.service';
-import { RolaGuard } from '../auth/guards/rola-auth.guard';
-import { AuthResponse } from 'src/custom';
+import { RolaGuard, RolaService, AuthResponse } from '../modules/index';
 
 @Controller('rola')
 export class RolaController {

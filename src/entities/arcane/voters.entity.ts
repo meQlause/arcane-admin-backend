@@ -7,7 +7,7 @@ import {
     PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { Votes } from './votes.entity';
+import { Votes } from '../../modules/index';
 @Entity()
 export class Voters {
     @PrimaryGeneratedColumn({ type: 'bigint' })

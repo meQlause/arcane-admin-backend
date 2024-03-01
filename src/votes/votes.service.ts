@@ -1,18 +1,20 @@
 import {
+    Address,
+    Votes,
+    CreateVoteDto,
+    Discussions,
+    getVoteComponentAddress,
+    Voters,
+    AddVoteDto,
+} from '../modules/index';
+import {
     BadRequestException,
     Injectable,
     UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Address } from 'src/entities/arcane/address.entity';
-import { Votes } from 'src/entities/arcane/votes.entity';
 import { Repository } from 'typeorm';
-import { CreateVoteDto } from './dto/create-vote-dto';
 import { Transactional } from 'typeorm-transactional';
-import { Discussions } from 'src/entities/arcane/discussion.entity';
-import { getVoteComponentAddress } from 'src/helpers/RadixAPI';
-import { Voters } from 'src/entities/arcane/voters.entity';
-import { AddVoteDto } from './dto/add-vote-dto';
 
 @Injectable()
 export class VotesService {

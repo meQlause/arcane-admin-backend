@@ -1,11 +1,15 @@
+import {
+    rolaChallenge,
+    arcane,
+    RolaModule,
+    AddressModule,
+    VotesModule,
+} from './modules/index';
 import { Module } from '@nestjs/common';
-import { RolaModule } from './rola/rola.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { rolaChallenge, arcane } from 'ormconfig';
-import { AddressModule } from './address/address.module';
-import { VotesModule } from './votes/votes.module';
 import { addTransactionalDataSource } from 'typeorm-transactional';
 import { DataSource } from 'typeorm';
+
 @Module({
     imports: [
         TypeOrmModule.forRootAsync({

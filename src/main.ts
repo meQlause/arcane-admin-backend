@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import 'reflect-metadata';
 import { initializeTransactionalContext } from 'typeorm-transactional';
+import { AppModule } from './app.module';
+import 'reflect-metadata';
 import * as dotenv from 'dotenv';
 dotenv.config();
 

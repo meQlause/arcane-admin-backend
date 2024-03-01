@@ -4,7 +4,7 @@ import {
     Injectable,
     UnauthorizedException,
 } from '@nestjs/common';
-import { JWTData, UserRole } from 'src/custom';
+import { JWTData, UserRole } from '../../modules/index';
 
 @Injectable()
 export class AdminGuard implements CanActivate {

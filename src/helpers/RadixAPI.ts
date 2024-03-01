@@ -10,8 +10,6 @@ import {
     UserRole,
     VaultNftId,
 } from 'src/custom';
-import * as dotenv from 'dotenv';
-dotenv.config();
 
 const verifyRole = (items: Item, role: UserRole): boolean => {
     const neededResourceAddress: string =

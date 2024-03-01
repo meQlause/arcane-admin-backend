@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
-import { AddressController } from './address.controller';
-import { AddressService } from './address.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Address } from 'src/entities/arcane/address.entity';
+import { AddressController, AddressService, Address } from '../modules/index';
 @Module({
     imports: [TypeOrmModule.forFeature([Address], 'arcane-connection')],
     controllers: [AddressController],

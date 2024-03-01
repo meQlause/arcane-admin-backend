@@ -1,14 +1,13 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Address } from 'src/entities/arcane/address.entity';
 import { Repository } from 'typeorm';
-import { UserRole, VaultNftId } from 'src/custom';
 import {
+    Address,
+    UserRole,
+    VaultNftId,
     getVaultAddressAndNftId,
     isWalletContainsBadge,
-} from '../helpers/RadixAPI';
-import * as dotenv from 'dotenv';
-dotenv.config();
+} from '../modules/index';
 
 @Injectable()
 export class AddressService {
@@ -97,9 +96,6 @@ export class AddressService {
         account.role = UserRole.Member;
         account.nft_id = null;
         account.vault_admin_address = null;
-        if ((await isWalletContainsBadge(address)) === UserRole.Unregistered) {
-            this.addressRepo.remove(account);
-        }
         if ((await isWalletContainsBadge(address)) === UserRole.Unregistered) {
             await this.addressRepo.remove(account);
         } else {

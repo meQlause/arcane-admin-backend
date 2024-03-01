@@ -9,9 +9,8 @@ import {
     PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { Address } from './address.entity';
-import { Discussions } from './discussion.entity';
-import { Voters } from './voters.entity';
+import { Address, Discussions, Voters } from '../../modules/index';
+
 @Entity()
 export class Votes {
     @PrimaryGeneratedColumn({ type: 'bigint' })

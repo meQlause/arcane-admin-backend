@@ -2,15 +2,16 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Rola, RolaError, SignedChallenge } from '@radixdlt/rola';
 import { ResultAsync } from 'neverthrow';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RolaChallenge } from 'src/entities/rola-challenge/rola-challenge.entity';
-import { Address } from 'src/entities/arcane/address.entity';
 import { Repository } from 'typeorm';
-import * as crypto from 'crypto';
-import * as dotenv from 'dotenv';
 import { JwtService } from '@nestjs/jwt';
-import { AuthResponse, UserRole } from 'src/custom';
-import { getVaultAddressAndNftId } from 'src/helpers/RadixAPI';
-dotenv.config();
+import {
+    getVaultAddressAndNftId,
+    AuthResponse,
+    UserRole,
+    RolaChallenge,
+    Address,
+} from '../modules/index';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class RolaService {

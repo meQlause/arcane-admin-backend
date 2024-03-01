@@ -1,11 +1,14 @@
+import {
+    VotesController,
+    VotesService,
+    Address,
+    Votes,
+    Discussions,
+    Voters,
+} from '../modules/index';
 import { Module } from '@nestjs/common';
-import { VotesController } from './votes.controller';
-import { VotesService } from './votes.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Address } from 'src/entities/arcane/address.entity';
-import { Votes } from 'src/entities/arcane/votes.entity';
-import { Discussions } from 'src/entities/arcane/discussion.entity';
-import { Voters } from 'src/entities/arcane/voters.entity';
+
 @Module({
     imports: [
         TypeOrmModule.forFeature([Address], 'arcane-connection'),

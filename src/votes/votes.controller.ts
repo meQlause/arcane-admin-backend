@@ -10,15 +10,17 @@ import {
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
-import { CreateVoteDto } from './dto/create-vote-dto';
-import { VotesService } from './votes.service';
-import { Votes } from 'src/entities/arcane/votes.entity';
-import { JWTGuard } from 'src/auth/guards/jwt-auth.guard';
-import { AddVoteDto } from './dto/add-vote-dto';
-import { Voters } from 'src/entities/arcane/voters.entity';
+import {
+    CreateVoteDto,
+    VotesService,
+    AddVoteDto,
+    PhotoUploadInterceptor,
+    Voters,
+    Votes,
+    JWTGuard,
+} from '../modules/index';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
-import { PhotoUploadInterceptor } from './interceptors/photo-upload.interceptor';
 
 @Controller('votes')
 export class VotesController {
