@@ -56,7 +56,7 @@ export class VotesController {
         if (!photo) {
             throw new BadRequestException('File is not a picture');
         }
-        return `https://host.docker.internal:4001/votes/pict/${photo.filename}`;
+        return `https://arcanedev.site:4001/votes/pict/${photo.filename}`;
     }
 
     /**
