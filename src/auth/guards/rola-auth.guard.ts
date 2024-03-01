@@ -57,10 +57,7 @@ export class RolaGuard implements CanActivate {
         }
         const isSignedChallengeValid = await this.verifySignedChallenge(data);
         if (isSignedChallengeValid.isErr()) {
-            isSignedChallengeValid.mapErr((err) => {
-                this.logger.error(err);
-            });
-            this.logger.debug(isSignedChallengeValid.error);
+            this.logger.debug(isSignedChallengeValid.error.reason);
             this.logger.warn(`Error on Guard : signed data is not valid`);
             return false;
         }
