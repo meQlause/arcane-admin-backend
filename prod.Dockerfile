@@ -14,6 +14,7 @@ FROM node:18-alpine
 WORKDIR /app
 
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/.env ./
 
 COPY package*.json ./
 
