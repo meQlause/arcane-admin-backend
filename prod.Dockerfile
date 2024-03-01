@@ -1,20 +1,26 @@
-FROM node:18-alpine AS base
-
-FROM base AS builder
-
+FROM node:18-alpine AS build
 WORKDIR /app
 
-COPY package.json ./
+COPY package*.json ./
 
-RUN yarn install --only=production
+RUN yarn install
 
 COPY . .
 
-ARG ENV_VARIABLE
-ENV ENV_VARIABLE=${ENV_VARIABLE}
-ARG NEXT_PUBLIC_ENV_VARIABLE
-ENV NEXT_PUBLIC_ENV_VARIABLE=${NEXT_PUBLIC_ENV_VARIABLE}
-
 RUN yarn build
 
-CMD ["yarn", "start"]
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY --from=build /app/dist ./dist
+
+COPY package*.json ./
+
+RUN yarn install --only=production
+
+RUN rm package*.json
+
+EXPOSE 4000
+
+CMD ["node", "dist/main.js"]
