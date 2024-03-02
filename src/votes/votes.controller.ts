@@ -74,7 +74,7 @@ export class VotesController {
      * @param filename The filename of the picture.
      * @param res The response object to send the file.
      */
-    @Get('picts/:filename')
+    @Get('pict/:filename')
     async getPict(@Param('filename') filename: string, @Res() res: Response) {
         const methodName = 'getPict';
         this.logger.log(`Method: ${methodName} | Params: ${filename}`);
