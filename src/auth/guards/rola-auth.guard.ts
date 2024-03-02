@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Request } from 'express';
-import { Result, ResultAsync } from 'neverthrow';
+import { ResultAsync } from 'neverthrow';
 import { RolaError, SignedChallenge } from '@radixdlt/rola';
 import { RolaService } from 'src/rola/rola.service';
 import { LoggerService } from 'src/logger/logger.service';
@@ -31,17 +31,8 @@ export class RolaGuard implements CanActivate {
 
     private async verifySignedChallenge(
         data: SignedChallenge[]
-    ): Promise<Result<void[], RolaError>> {
-        return await ResultAsync.combine(
-            data.map((signedChallenge) => {
-                this.logger.log('verifying signed challenge');
-                const data =
-                    this.rola.rolaProperty.verifySignedChallenge(
-                        signedChallenge
-                    );
-                return data;
-            })
-        );
+    ): Promise<ResultAsync<void, RolaError>> {
+        return await this.rola.rolaProperty.verifySignedChallenge(data[0]);
     }
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const data = this.convertData(
@@ -56,16 +47,16 @@ export class RolaGuard implements CanActivate {
             return false;
         }
         const isSignedChallengeValid = await this.verifySignedChallenge(data);
-        if (isSignedChallengeValid.isOk().valueOf()) {
-            this.logger.log(`done`);
-        }
-        if (isSignedChallengeValid.isErr().valueOf()) {
+
+        this.logger.log(isSignedChallengeValid.isErr());
+        if (isSignedChallengeValid.isErr()) {
             this.logger.warn(`Error on Guard : signed data is not valid`);
             this.logger.warn(
                 isSignedChallengeValid.mapErr((err) => {
                     this.logger.error(err);
                 })
             );
+            return false;
         }
 
         context.switchToHttp().getRequest<Request>()['address'] =

@@ -10,7 +10,6 @@ import { AuthResponse, UserRole } from 'src/custom';
 import { Address } from 'src/entities/arcane/address.entity';
 import { RolaChallenge } from 'src/entities/rola-challenge/rola-challenge.entity';
 import { getVaultAddressAndNftId } from 'src/helpers/RadixAPI';
-import envConfig from 'src/config/env.config';
 import { LoggerService } from 'src/logger/logger.service';
 
 @Injectable()
@@ -29,10 +28,11 @@ export class RolaService {
         private readonly logger: LoggerService
     ) {
         this.rolaProperty = Rola({
-            applicationName: `Arcane Labyrinth`,
-            dAppDefinitionAddress: `${envConfig().dappsDefinitionAddress}`,
+            applicationName: 'Arcane Labyrinth',
+            dAppDefinitionAddress:
+                'account_tdx_2_1293z892mr8wx3ga73zlrfwmlakx38te882yjfe2ehuxhk5z2cgp8rc',
             networkId: 2,
-            expectedOrigin: `${envConfig().expectedOrigin}`,
+            expectedOrigin: 'https://arcanedev.site',
         });
     }
 
@@ -84,7 +84,6 @@ export class RolaService {
      */
     async verifyChallenge(input: string): Promise<boolean> {
         this.logger.debug(`rola property : `);
-        this.logger.debug(this.rolaProperty);
         this.logger.log('Getting challenge information.');
         const challenge = await this.rolaChallengeRepo.findOne({
             where: { challenge: input },

@@ -57,8 +57,9 @@ export class VotesService {
 
         this.logger.log('Getting transaction information.');
         const component = await getVoteComponentAddress(data.txId.trim());
+        const discussion: Discussions = this.DiscussionRepo.create({});
 
-        const voteChoice = data.votes.reduce(
+        const vote_choice = data.votes.reduce(
             (obj, key) => ({ ...obj, [key]: 0 }),
             {}
         );
@@ -67,21 +68,19 @@ export class VotesService {
             {}
         );
 
-        const discussion: Discussions = this.DiscussionRepo.create();
         const vote: Votes = this.VotesRepo.create({
             startDate: data.startDate,
             endDate: data.endDate,
             title: data.title,
             description: data.description,
             isPending: true,
-            voteTokenAmount: voteChoice,
-            voteAddressCount: voteChoice,
+            voteTokenAmount: vote_choice,
+            voteAddressCount: vote_choice,
             componentAddress: component,
-            photos: photos,
-            discussion: discussion,
-            address: address,
         });
-
+        vote.photos = photos;
+        vote.discussion = discussion;
+        vote.address = address;
         address.discussions = [discussion];
 
         await this.DiscussionRepo.save(discussion);
