@@ -1,12 +1,11 @@
 import {
     Column,
-    CreateDateColumn,
     Entity,
     JoinColumn,
     ManyToOne,
     OneToMany,
     OneToOne,
-    PrimaryGeneratedColumn,
+    PrimaryColumn,
 } from 'typeorm';
 import { Address } from './address.entity';
 import { Discussions } from './discussion.entity';
@@ -14,26 +13,23 @@ import { Voters } from './voters.entity';
 
 @Entity()
 export class Votes {
-    @PrimaryGeneratedColumn({ type: 'bigint' })
+    @PrimaryColumn()
     id: number;
 
-    @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    startDate: Date;
+    @Column({ type: 'bigint', nullable: false })
+    startEpoch: number;
 
-    @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    endDate: Date;
+    @Column({ type: 'bigint', nullable: false })
+    endEpoch: number;
 
-    @Column({ type: 'text', nullable: false })
+    @Column({ type: 'text', nullable: true })
     title: string;
 
     @Column({ type: 'text', nullable: false })
-    description: string;
+    metadata: string;
 
     @Column({ type: 'text', nullable: false })
     componentAddress: string;
-
-    @Column({ type: 'json', nullable: false })
-    photos: Record<string, number>;
 
     @Column({ type: 'json', nullable: false })
     voteTokenAmount: Record<string, number>;

@@ -1,42 +1,31 @@
-import {
-    IsArray,
-    IsDateString,
-    IsNotEmpty,
-    IsString,
-    IsUrl,
-} from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateVoteDto {
+    @IsNumber()
+    @IsNotEmpty()
+    id: number;
+
+    @IsNumber()
+    @IsNotEmpty()
+    owner: number;
+
     @IsString()
     @IsNotEmpty()
     address: string;
 
     @IsString()
     @IsNotEmpty()
-    title: string;
-
-    @IsString()
-    @IsNotEmpty()
-    description: string;
-
-    @IsString()
-    @IsNotEmpty()
-    txId: string;
+    metadata: string;
 
     @IsArray()
     @IsNotEmpty()
     votes: string[];
 
-    @IsArray()
+    @IsNumber()
     @IsNotEmpty()
-    @IsUrl({}, { each: true })
-    photos: string[];
+    startEpoch: number;
 
-    @IsDateString()
+    @IsNumber()
     @IsNotEmpty()
-    startDate: Date;
-
-    @IsDateString()
-    @IsNotEmpty()
-    endDate: Date;
+    endEpoch: number;
 }

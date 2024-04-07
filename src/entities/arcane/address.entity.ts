@@ -5,14 +5,14 @@ import {
     Entity,
     ManyToMany,
     OneToMany,
-    PrimaryGeneratedColumn,
+    PrimaryColumn,
 } from 'typeorm';
 import { Discussions } from './discussion.entity';
 import { Votes } from './votes.entity';
 
 @Entity()
 export class Address {
-    @PrimaryGeneratedColumn()
+    @PrimaryColumn()
     id: number;
 
     @Column({ unique: true, nullable: false })

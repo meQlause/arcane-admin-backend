@@ -21,6 +21,7 @@ import { CreateVoteDto } from './dto/create-vote-dto';
 import { PhotoUploadInterceptor } from './interceptors/photo-upload.interceptor';
 import { VotesService } from './votes.service';
 import { LoggerService } from 'src/logger/logger.service';
+import { WithdrawVoteDto } from './dto/withdraw-vote-dto';
 
 @Controller('votes')
 export class VotesController {
@@ -35,7 +36,6 @@ export class VotesController {
      * @param createVote The data for creating the vote.
      * @returns Promise<Votes> The newly created vote object.
      */
-    @UseGuards(JWTGuard)
     @Post('create-vote')
     async createVote(@Body() createVote: CreateVoteDto): Promise<Votes> {
         const methodName = 'createVote';
@@ -93,6 +93,13 @@ export class VotesController {
         return this.votesService.getVotes();
     }
 
+    @Get('get-votes-by/:id')
+    async getVotesById(@Param('id') id: number): Promise<Votes[]> {
+        const methodName = 'getVotesById';
+        this.logger.log(`Method: ${methodName} | Params: ${id}`);
+        return this.votesService.getVotesById(id);
+    }
+
     /**
      * Retrieves a vote by ID.
      *
@@ -112,11 +119,25 @@ export class VotesController {
      * @param addVote The data for adding the vote.
      * @returns Promise<Voters> The newly added voter object.
      */
-    @UseGuards(JWTGuard)
+    // @UseGuards(JWTGuard)
     @Post('add-vote')
     async addVote(@Body() addVote: AddVoteDto): Promise<Voters> {
         const methodName = 'addVote';
         this.logger.log(`Method: ${methodName} | Params: ${addVote}`);
         return await this.votesService.addVote(addVote);
+    }
+
+    @Post('withdraw-vote')
+    async withdraw(@Body() WithdrawVote: WithdrawVoteDto): Promise<Voters> {
+        const methodName = 'withdraw';
+        this.logger.log(`Method: ${methodName} | Params: ${WithdrawVote}`);
+        return await this.votesService.withdrawVote(WithdrawVote);
+    }
+
+    @Get('get-voter-data/:id')
+    async voterData(@Param('id') id: number): Promise<Voters[]> {
+        const methodName = 'voterData';
+        this.logger.log(`Method: ${methodName} | Params: ${id}`);
+        return await this.votesService.voterData(id);
     }
 }

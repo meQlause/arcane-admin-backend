@@ -1,6 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { Rola, RolaError, SignedChallenge } from '@radixdlt/rola';
-import { ResultAsync } from 'neverthrow';
+import { Rola } from '@radixdlt/rola';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -14,11 +13,7 @@ import { LoggerService } from 'src/logger/logger.service';
 
 @Injectable()
 export class RolaService {
-    rolaProperty: {
-        verifySignedChallenge: (
-            signedChallenge: SignedChallenge
-        ) => ResultAsync<void, RolaError>;
-    };
+    rolaProperty: any;
     constructor(
         @InjectRepository(RolaChallenge, 'rola-challenge-connection')
         private readonly rolaChallengeRepo: Repository<RolaChallenge>,

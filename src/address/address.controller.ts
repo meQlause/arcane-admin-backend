@@ -7,7 +7,6 @@ import {
     Put,
     UseGuards,
 } from '@nestjs/common';
-
 import { UserRole } from 'src/custom';
 import { AddressService } from './address.service';
 import { RegisterAddressDto } from './dto/register-address-dto';
@@ -63,6 +62,7 @@ export class AddressController {
         const methodName = 'register';
         this.logger.log(`$Method: ${methodName} | Params: ${registerAddress}`);
         return await this.addressService.register(
+            registerAddress.id,
             registerAddress.address,
             UserRole.Member
         );

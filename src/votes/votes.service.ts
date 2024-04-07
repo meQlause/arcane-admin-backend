@@ -1,6 +1,7 @@
 import {
     BadRequestException,
     Injectable,
+    NotFoundException,
     UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,12 +9,12 @@ import { Address } from 'src/entities/arcane/address.entity';
 import { Discussions } from 'src/entities/arcane/discussion.entity';
 import { Voters } from 'src/entities/arcane/voters.entity';
 import { Votes } from 'src/entities/arcane/votes.entity';
-import { getVoteComponentAddress } from 'src/helpers/RadixAPI';
 import { Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 import { AddVoteDto } from './dto/add-vote-dto';
 import { CreateVoteDto } from './dto/create-vote-dto';
 import { LoggerService } from 'src/logger/logger.service';
+import { WithdrawVoteDto } from './dto/withdraw-vote-dto';
 
 @Injectable()
 export class VotesService {
@@ -35,8 +36,8 @@ export class VotesService {
      * @param address The address to check.
      * @returns Address object if registered, otherwise null.
      */
-    private async isRegistered(address: string): Promise<Address> {
-        return await this.AddressRepo.findOne({ where: { address: address } });
+    private async isRegistered(owner: number): Promise<Address> {
+        return await this.AddressRepo.findOne({ where: { id: owner } });
     }
 
     /**
@@ -49,36 +50,29 @@ export class VotesService {
     @Transactional({ connectionName: 'arcane-datasource' })
     async createVote(data: CreateVoteDto): Promise<Votes> {
         this.logger.log('Getting address information.');
-        const address: Address = await this.isRegistered(data.address);
+        const address: Address = await this.isRegistered(data.owner);
         if (!address) {
             this.logger.warn('Address is not registered.');
             throw new UnauthorizedException('Address is unregistered');
         }
 
         this.logger.log('Getting transaction information.');
-        const component = await getVoteComponentAddress(data.txId.trim());
         const discussion: Discussions = this.DiscussionRepo.create({});
 
         const vote_choice = data.votes.reduce(
             (obj, key) => ({ ...obj, [key]: 0 }),
             {}
         );
-        const photos = data.photos.reduce(
-            (obj, key, index) => ({ ...obj, [key]: index }),
-            {}
-        );
 
         const vote: Votes = this.VotesRepo.create({
-            startDate: data.startDate,
-            endDate: data.endDate,
-            title: data.title,
-            description: data.description,
-            isPending: true,
-            voteTokenAmount: vote_choice,
+            id: data.id,
+            startEpoch: data.startEpoch,
+            endEpoch: data.endEpoch,
+            metadata: data.metadata,
+            componentAddress: data.address,
             voteAddressCount: vote_choice,
-            componentAddress: component,
+            voteTokenAmount: vote_choice,
         });
-        vote.photos = photos;
         vote.discussion = discussion;
         vote.address = address;
         address.discussions = [discussion];
@@ -109,6 +103,7 @@ export class VotesService {
      */
     async getVoteId(id: number): Promise<Votes> {
         this.logger.log('Get Votes data by ID.');
+
         return await this.VotesRepo.createQueryBuilder('votes')
             .leftJoinAndSelect('votes.address', 'address')
             .leftJoinAndSelect('votes.voters', 'voters')
@@ -116,6 +111,17 @@ export class VotesService {
             .getOne();
     }
 
+    async getVotesById(id: number): Promise<Votes[]> {
+        this.logger.log('Get Votes data by ID.');
+        await this.VotesRepo.createQueryBuilder('votes')
+            .leftJoinAndSelect('votes.address', 'address')
+            .where('votes.address = :id', { id })
+            .getMany();
+        return await this.VotesRepo.createQueryBuilder('votes')
+            .leftJoinAndSelect('votes.address', 'address')
+            .where('votes.address = :id', { id })
+            .getMany();
+    }
     /**
      * Adds a vote.
      *
@@ -129,6 +135,11 @@ export class VotesService {
         const vote = await this.VotesRepo.findOne({
             where: { id: addVote.voteId },
         });
+
+        this.logger.log('Getting Address information.');
+        const address = await this.AddressRepo.findOne({
+            where: { id: addVote.address },
+        });
         if (!vote) {
             this.logger.fatal(`Vote doesn't exist.`);
             throw new BadRequestException('Vote not found');
@@ -141,8 +152,9 @@ export class VotesService {
         }
 
         const voter = this.VotersRepo.create({
+            AddressId: address.id,
             amount: addVote.tokenAmount,
-            voter: addVote.address,
+            voter: address.address,
             vote: vote,
             selected: key,
         });
@@ -156,5 +168,38 @@ export class VotesService {
         ]);
         this.logger.log(`Voting Success.`);
         return voter;
+    }
+
+    @Transactional({ connectionName: 'arcane-datasource' })
+    async withdrawVote(withdrawVote: WithdrawVoteDto): Promise<Voters> {
+        this.logger.log('Getting Vote information.');
+        this.logger.log('Get Votes data by ID.');
+        const vote = await this.VotesRepo.createQueryBuilder('votes')
+            .leftJoinAndSelect('votes.voters', 'voters')
+            .where('votes.id = :voteId', { voteId: withdrawVote.voteId })
+            .getOne();
+
+        if (!vote) {
+            throw new NotFoundException(
+                `Voter with ID ${withdrawVote.addressId} not found in the voters of the vote with ID ${withdrawVote.voteId}`
+            );
+        }
+
+        const voterUpdate = vote.voters.find(
+            (voter) =>
+                Number(voter.AddressId) === Number(withdrawVote.addressId)
+        );
+        voterUpdate.isWithdrawed = true;
+
+        return await this.VotersRepo.save(voterUpdate);
+    }
+
+    async voterData(id: number): Promise<Voters[]> {
+        const voters = await this.VotersRepo.find({ where: { AddressId: id } });
+        if (!voters.length) {
+            throw new Error(`Voters with AddressId ${id} not found`);
+        }
+        console.log(voters);
+        return voters;
     }
 }
