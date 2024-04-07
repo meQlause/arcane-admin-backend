@@ -27,7 +27,7 @@ export class RolaService {
             dAppDefinitionAddress:
                 'account_tdx_2_1293z892mr8wx3ga73zlrfwmlakx38te882yjfe2ehuxhk5z2cgp8rc',
             networkId: 2,
-            expectedOrigin: 'https://localhost',
+            expectedOrigin: 'https://arcanedev.site',
         });
     }
 
