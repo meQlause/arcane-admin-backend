@@ -64,11 +64,29 @@ export class VotesService {
             {}
         );
 
+        const url = `https://api.starton.com/v3/ipfs/pin/${data.metadata}`;
+        const options = {
+            method: 'GET',
+            headers: {
+                'X-Api-Key': 'sk_live_00998243-feff-49f8-a092-8cb33d87e5c9',
+            },
+        };
+
+        let resData: any = {};
+        try {
+            const response = await fetch(url, options);
+            resData = await response.json();
+        } catch (error) {
+            console.error(error);
+        }
+
         const vote: Votes = this.VotesRepo.create({
             id: data.id,
             startEpoch: data.startEpoch,
             endEpoch: data.endEpoch,
             metadata: data.metadata,
+            title: resData.metadata.title,
+            description: resData.metadata.description,
             componentAddress: data.address,
             voteAddressCount: vote_choice,
             voteTokenAmount: vote_choice,
@@ -132,9 +150,10 @@ export class VotesService {
     @Transactional({ connectionName: 'arcane-datasource' })
     async addVote(addVote: AddVoteDto): Promise<Voters> {
         this.logger.log('Getting Vote information.');
-        const vote = await this.VotesRepo.findOne({
-            where: { id: addVote.voteId },
-        });
+        const vote = await this.VotesRepo.createQueryBuilder('votes')
+            .leftJoinAndSelect('votes.voters', 'voters')
+            .where('votes.id = :voteId', { voteId: addVote.voteId })
+            .getOne();
 
         this.logger.log('Getting Address information.');
         const address = await this.AddressRepo.findOne({
@@ -155,6 +174,7 @@ export class VotesService {
             AddressId: address.id,
             amount: addVote.tokenAmount,
             voter: address.address,
+            title: vote.title,
             selected: key,
         });
 

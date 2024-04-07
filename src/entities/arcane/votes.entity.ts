@@ -29,6 +29,9 @@ export class Votes {
     metadata: string;
 
     @Column({ type: 'text', nullable: false })
+    description: string;
+
+    @Column({ type: 'text', nullable: false })
     componentAddress: string;
 
     @Column({ type: 'json', nullable: false })
