@@ -1,9 +1,9 @@
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class AddVoteDto {
-    @IsString()
+    @IsNumber()
     @IsNotEmpty()
-    address: string;
+    address: number;
 
     @IsString()
     @IsNotEmpty()

@@ -37,7 +37,11 @@ export class AddressService {
      * @returns Promise<Address> Registered Address object.
      * @throws UnauthorizedException if the address is not a valid admin or member.
      */
-    async register(address: string, role: UserRole): Promise<Address> {
+    async register(
+        id: number,
+        address: string,
+        role: UserRole
+    ): Promise<Address> {
         this.logger.log('Getting wallet information.');
         const userRole: UserRole = await isWalletContainsBadge(address);
         if (userRole !== UserRole.Admin && userRole !== UserRole.Member) {
@@ -49,6 +53,7 @@ export class AddressService {
         }
         this.logger.log('Address valid.');
         const registeredAddress = this.addressRepo.create({
+            id: id,
             address: address,
             role: role,
         });

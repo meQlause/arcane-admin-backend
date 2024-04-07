@@ -13,6 +13,12 @@ export class Voters {
     @PrimaryGeneratedColumn({ type: 'bigint' })
     id: number;
 
+    @Column({ type: 'bigint' })
+    AddressId: number;
+
+    @Column({ type: 'text' })
+    title: string;
+
     @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     votedAt: Date;
 
@@ -24,6 +30,9 @@ export class Voters {
 
     @Column({ type: 'bigint' })
     amount: number;
+
+    @Column({ type: 'boolean', default: false })
+    isWithdrawed: boolean;
 
     @ManyToOne(() => Votes, (votes) => votes.voters)
     @JoinColumn()
