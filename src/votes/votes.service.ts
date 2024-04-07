@@ -155,10 +155,10 @@ export class VotesService {
             AddressId: address.id,
             amount: addVote.tokenAmount,
             voter: address.address,
-            vote: vote,
             selected: key,
         });
 
+        vote.voters.push(voter);
         vote.voteAddressCount[key] += 1;
         vote.voteTokenAmount[key] += addVote.tokenAmount;
 
@@ -184,11 +184,12 @@ export class VotesService {
                 `Voter with ID ${withdrawVote.addressId} not found in the voters of the vote with ID ${withdrawVote.voteId}`
             );
         }
-
+        console.log(vote);
         const voterUpdate = vote.voters.find(
             (voter) =>
                 Number(voter.AddressId) === Number(withdrawVote.addressId)
         );
+        console.log(voterUpdate);
         voterUpdate.isWithdrawed = true;
 
         return await this.VotersRepo.save(voterUpdate);
