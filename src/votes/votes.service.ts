@@ -79,13 +79,15 @@ export class VotesService {
         } catch (error) {
             console.error(error);
         }
+        console.log(data.startEpoch + Number(resData.metadata.endEpoch));
 
         const vote: Votes = this.VotesRepo.create({
             id: data.id,
             startEpoch: data.startEpoch,
-            endEpoch: data.endEpoch,
             metadata: data.metadata,
+            endEpoch: data.startEpoch + Number(resData.metadata.endEpoch),
             title: resData.metadata.title,
+            picture: resData.metadata.picture,
             description: resData.metadata.description,
             componentAddress: data.address,
             voteAddressCount: vote_choice,
@@ -110,6 +112,7 @@ export class VotesService {
         this.logger.log('Get Votes data.');
         return await this.VotesRepo.createQueryBuilder('votes')
             .leftJoinAndSelect('votes.address', 'address')
+            .orderBy('votes.id', 'DESC')
             .getMany();
     }
 
@@ -121,7 +124,6 @@ export class VotesService {
      */
     async getVoteId(id: number): Promise<Votes> {
         this.logger.log('Get Votes data by ID.');
-
         return await this.VotesRepo.createQueryBuilder('votes')
             .leftJoinAndSelect('votes.address', 'address')
             .leftJoinAndSelect('votes.voters', 'voters')
@@ -131,13 +133,10 @@ export class VotesService {
 
     async getVotesById(id: number): Promise<Votes[]> {
         this.logger.log('Get Votes data by ID.');
-        await this.VotesRepo.createQueryBuilder('votes')
-            .leftJoinAndSelect('votes.address', 'address')
-            .where('votes.address = :id', { id })
-            .getMany();
         return await this.VotesRepo.createQueryBuilder('votes')
             .leftJoinAndSelect('votes.address', 'address')
             .where('votes.address = :id', { id })
+            .orderBy('votes.id', 'DESC')
             .getMany();
     }
     /**
@@ -216,7 +215,10 @@ export class VotesService {
     }
 
     async voterData(id: number): Promise<Voters[]> {
-        const voters = await this.VotersRepo.find({ where: { AddressId: id } });
+        const voters = await this.VotersRepo.find({
+            where: { AddressId: id },
+            order: { id: 'DESC' },
+        });
         if (!voters.length) {
             throw new Error(`Voters with AddressId ${id} not found`);
         }

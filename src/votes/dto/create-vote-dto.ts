@@ -24,8 +24,4 @@ export class CreateVoteDto {
     @IsNumber()
     @IsNotEmpty()
     startEpoch: number;
-
-    @IsNumber()
-    @IsNotEmpty()
-    endEpoch: number;
 }
