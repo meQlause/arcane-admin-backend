@@ -67,7 +67,7 @@ export class VotesService {
             {}
         );
 
-        const url = `https://api.starton.com/v3/ipfs/pin/${data.metadata}`;
+        const url = `https://eu.starton-ipfs.com/ipfs//${data.metadata}`;
         const options = {
             method: 'GET',
             headers: {
