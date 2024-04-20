@@ -82,16 +82,16 @@ export class VotesService {
         } catch (error) {
             console.error(error);
         }
-        console.log(data.startEpoch + Number(resData.metadata.endEpoch));
+        console.log(data.startEpoch + Number(resData.endEpoch));
 
         const vote: Votes = this.VotesRepo.create({
             id: data.id,
             startEpoch: data.startEpoch,
             metadata: data.metadata,
-            endEpoch: data.startEpoch + Number(resData.metadata.endEpoch),
-            title: resData.metadata.title,
-            picture: resData.metadata.picture,
-            description: resData.metadata.description,
+            endEpoch: data.startEpoch + Number(resData.endEpoch),
+            title: resData.title,
+            picture: resData.picture,
+            description: resData.description,
             componentAddress: data.address,
             voteAddressCount: vote_choice,
             voteTokenAmount: vote_choice,
