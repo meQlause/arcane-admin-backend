@@ -9,7 +9,7 @@ async function bootstrap() {
     initializeTransactionalContext();
     const app = await NestFactory.create(AppModule);
     app.enableCors({
-        origin: envConfig().expectedOrigin,
+        origin: ['listener', envConfig().expectedOrigin],
     });
     app.useGlobalPipes(
         new ValidationPipe({

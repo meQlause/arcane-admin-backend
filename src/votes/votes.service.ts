@@ -15,6 +15,7 @@ import { AddVoteDto } from './dto/add-vote-dto';
 import { CreateVoteDto } from './dto/create-vote-dto';
 import { LoggerService } from 'src/logger/logger.service';
 import { WithdrawVoteDto } from './dto/withdraw-vote-dto';
+import { Counter } from 'src/entities/arcane/counter.entity';
 
 @Injectable()
 export class VotesService {
@@ -27,6 +28,8 @@ export class VotesService {
         private readonly DiscussionRepo: Repository<Discussions>,
         @InjectRepository(Voters, 'arcane-connection')
         private readonly VotersRepo: Repository<Voters>,
+        @InjectRepository(Counter, 'arcane-connection')
+        private readonly CounterRepo: Repository<Counter>,
         private readonly logger: LoggerService
     ) {}
 
@@ -79,13 +82,15 @@ export class VotesService {
         } catch (error) {
             console.error(error);
         }
+        console.log(data.startEpoch + Number(resData.metadata.endEpoch));
 
         const vote: Votes = this.VotesRepo.create({
             id: data.id,
             startEpoch: data.startEpoch,
-            endEpoch: data.endEpoch,
             metadata: data.metadata,
+            endEpoch: data.startEpoch + Number(resData.metadata.endEpoch),
             title: resData.metadata.title,
+            picture: resData.metadata.picture,
             description: resData.metadata.description,
             componentAddress: data.address,
             voteAddressCount: vote_choice,
@@ -95,8 +100,14 @@ export class VotesService {
         vote.address = address;
         address.discussions = [discussion];
 
+        const counter: Counter = await this.CounterRepo.findOne({
+            where: { id: 1 },
+        });
+        counter.pending += 1;
         await this.DiscussionRepo.save(discussion);
         await this.AddressRepo.save(address);
+        await this.CounterRepo.save(counter);
+
         this.logger.log('Vote created.');
         return await this.VotesRepo.save(vote);
     }
@@ -106,10 +117,14 @@ export class VotesService {
      *
      * @returns Promise<Votes[]> Array of votes.
      */
-    async getVotes(): Promise<Votes[]> {
+    async getVotes(page: number, limit: number = 10): Promise<Votes[]> {
         this.logger.log('Get Votes data.');
+        const skip = (page - 1) * limit;
         return await this.VotesRepo.createQueryBuilder('votes')
             .leftJoinAndSelect('votes.address', 'address')
+            .orderBy('votes.id', 'DESC')
+            .skip(skip)
+            .take(limit)
             .getMany();
     }
 
@@ -121,7 +136,6 @@ export class VotesService {
      */
     async getVoteId(id: number): Promise<Votes> {
         this.logger.log('Get Votes data by ID.');
-
         return await this.VotesRepo.createQueryBuilder('votes')
             .leftJoinAndSelect('votes.address', 'address')
             .leftJoinAndSelect('votes.voters', 'voters')
@@ -129,15 +143,21 @@ export class VotesService {
             .getOne();
     }
 
+    async getVoterData(id: number, nftId: number): Promise<Voters> {
+        this.logger.log('Get Voter data by ID.');
+        return await this.VotersRepo.createQueryBuilder('voters')
+            .leftJoinAndSelect('voters.vote', 'votes')
+            .where('votes.id = :id', { id })
+            .andWhere('voters.AddressId = :nftId', { nftId })
+            .getOne();
+    }
+
     async getVotesById(id: number): Promise<Votes[]> {
-        this.logger.log('Get Votes data by ID.');
-        await this.VotesRepo.createQueryBuilder('votes')
-            .leftJoinAndSelect('votes.address', 'address')
-            .where('votes.address = :id', { id })
-            .getMany();
+        this.logger.log('Get Votes data by user ID.');
         return await this.VotesRepo.createQueryBuilder('votes')
             .leftJoinAndSelect('votes.address', 'address')
             .where('votes.address = :id', { id })
+            .orderBy('votes.id', 'DESC')
             .getMany();
     }
     /**
@@ -216,11 +236,29 @@ export class VotesService {
     }
 
     async voterData(id: number): Promise<Voters[]> {
-        const voters = await this.VotersRepo.find({ where: { AddressId: id } });
+        const voters = await this.VotersRepo.createQueryBuilder('voters')
+            .leftJoinAndSelect('voters.vote', 'votes')
+            .where('voters.AddressId = :id', { id })
+            .orderBy('voters.id', 'DESC')
+            .getMany();
+
         if (!voters.length) {
             throw new Error(`Voters with AddressId ${id} not found`);
         }
         console.log(voters);
         return voters;
+    }
+
+    async status(status: string): Promise<number> {
+        const { pending, active, reject } = await this.CounterRepo.findOne({
+            where: { id: 1 },
+        });
+        const select = {
+            pending: pending,
+            active: active,
+            reject: reject,
+        };
+        console.log(select[status]);
+        return select[status];
     }
 }
