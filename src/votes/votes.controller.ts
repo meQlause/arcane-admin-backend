@@ -5,6 +5,7 @@ import {
     Get,
     Param,
     Post,
+    Query,
     Res,
     UploadedFile,
     UseGuards,
@@ -87,10 +88,17 @@ export class VotesController {
      * @returns Promise<Votes[]> An array of all vote objects.
      */
     @Get('get-votes')
-    async getVotes(): Promise<Votes[]> {
+    async getVotes(@Query('page') page: number): Promise<Votes[]> {
         const methodName = 'getVotes';
         this.logger.log(`Method: ${methodName} | Params: -`);
-        return this.votesService.getVotes();
+        return this.votesService.getVotes(page);
+    }
+
+    @Get('counter/:status')
+    async getStatus(@Param('status') status: string): Promise<number> {
+        const methodName = 'getVotes';
+        this.logger.log(`Method: ${methodName} | Params: -`);
+        return this.votesService.status(status);
     }
 
     @Get('get-votes-by/:id')
@@ -111,6 +119,21 @@ export class VotesController {
         const methodName = 'getVoteId';
         this.logger.log(`Method: ${methodName} | Params: ${id}`);
         return await this.votesService.getVoteId(id);
+    }
+
+    @Get('voter/:id/:nftId')
+    async getVoterDataForVote(
+        @Param('id') id: number,
+        @Param('nftId') nftId: number
+    ): Promise<Voters> | undefined {
+        const methodName = 'getVoteId';
+        this.logger.log(`Method: ${methodName} | Params: ${id}`);
+        const res = await this.votesService.getVoterData(id, nftId);
+        console.log(res);
+        if (res) {
+            return res;
+        }
+        return undefined;
     }
 
     /**

@@ -5,6 +5,7 @@ import { Discussions } from '../entities/arcane/discussion.entity';
 import { Voters } from '../entities/arcane/voters.entity';
 import { Votes } from '../entities/arcane/votes.entity';
 import envConfig from './env.config';
+import { Counter } from 'src/entities/arcane/counter.entity';
 
 export const rolaChallenge: PostgresConnectionOptions = {
     type: 'postgres',
@@ -24,6 +25,6 @@ export const arcane: PostgresConnectionOptions = {
     port: 5432,
     username: process.env.USER_DB,
     password: process.env.PASSWORD_DB,
-    entities: [Address, Votes, Discussions, Voters],
+    entities: [Address, Votes, Discussions, Voters, Counter],
     synchronize: true,
 };
