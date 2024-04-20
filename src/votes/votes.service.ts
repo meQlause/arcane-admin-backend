@@ -236,17 +236,11 @@ export class VotesService {
     }
 
     async voterData(id: number): Promise<Voters[]> {
-        const voters = await this.VotersRepo.createQueryBuilder('voters')
+        return await this.VotersRepo.createQueryBuilder('voters')
             .leftJoinAndSelect('voters.vote', 'votes')
             .where('voters.AddressId = :id', { id })
             .orderBy('voters.id', 'DESC')
             .getMany();
-
-        if (!voters.length) {
-            throw new Error(`Voters with AddressId ${id} not found`);
-        }
-        console.log(voters);
-        return voters;
     }
 
     async status(status: string): Promise<number> {
