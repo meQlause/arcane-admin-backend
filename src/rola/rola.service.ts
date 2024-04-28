@@ -5,10 +5,10 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 
 import * as crypto from 'crypto';
-import { AuthResponse, UserRole } from 'src/custom';
+import { AuthResponse, ContainBadgeData, UserRole } from 'src/custom';
 import { Address } from 'src/entities/arcane/address.entity';
 import { RolaChallenge } from 'src/entities/rola-challenge/rola-challenge.entity';
-import { getVaultAddressAndNftId } from 'src/helpers/RadixAPI';
+import { isWalletContainsBadge } from 'src/helpers/RadixAPI';
 import { LoggerService } from 'src/logger/logger.service';
 
 @Injectable()
@@ -113,19 +113,20 @@ export class RolaService {
                 };
             }
             this.logger.log('address valid, validate data.');
-            const [data, accessToken] = await Promise.all([
-                getVaultAddressAndNftId(address, UserRole.Member),
-                this.jwtService.signAsync({
-                    address: account.address,
-                    role: account.role,
-                }),
-            ]);
+            const [data, accessToken]: [ContainBadgeData, string] =
+                await Promise.all([
+                    isWalletContainsBadge(address),
+                    this.jwtService.signAsync({
+                        address: account.address,
+                        role: account.role,
+                    }),
+                ]);
             this.logger.log('Valid.');
             return {
                 access_token: accessToken,
                 address: account.address,
                 role: account.role,
-                nft_id: data.nftId,
+                nft_id: data.nft_id,
             };
         } catch (error) {
             this.logger.fatal(`Error ${error}.`);

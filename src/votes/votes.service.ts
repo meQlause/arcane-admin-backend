@@ -9,13 +9,14 @@ import { Address } from 'src/entities/arcane/address.entity';
 import { Discussions } from 'src/entities/arcane/discussion.entity';
 import { Voters } from 'src/entities/arcane/voters.entity';
 import { Votes } from 'src/entities/arcane/votes.entity';
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 import { AddVoteDto } from './dto/add-vote-dto';
 import { CreateVoteDto } from './dto/create-vote-dto';
 import { LoggerService } from 'src/logger/logger.service';
 import { WithdrawVoteDto } from './dto/withdraw-vote-dto';
 import { Counter } from 'src/entities/arcane/counter.entity';
+import { Status } from 'src/custom';
 
 @Injectable()
 export class VotesService {
@@ -82,13 +83,12 @@ export class VotesService {
         } catch (error) {
             console.error(error);
         }
-        console.log(data.startEpoch + Number(resData.endEpoch));
 
         const vote: Votes = this.VotesRepo.create({
             id: data.id,
             startEpoch: data.startEpoch,
+            endEpoch: data.endEpoch,
             metadata: data.metadata,
-            endEpoch: data.startEpoch + Number(resData.endEpoch),
             title: resData.title,
             picture: resData.picture,
             description: resData.description,
@@ -126,6 +126,25 @@ export class VotesService {
             .skip(skip)
             .take(limit)
             .getMany();
+    }
+
+    async changeStatus(id: number, status: Status): Promise<Votes> {
+        if (status !== Status.CLOSED) {
+            const voteData = await this.VotesRepo.findOne({
+                where: { id: id },
+            });
+            voteData.status = status;
+            return this.VotesRepo.save(voteData);
+        }
+        const votes = await this.VotesRepo.find({
+            where: { endEpoch: LessThan(Number(id)) },
+        });
+
+        votes.forEach((vote) => {
+            vote.status = Status.CLOSED;
+        });
+
+        await this.VotesRepo.save(votes);
     }
 
     /**
@@ -244,13 +263,15 @@ export class VotesService {
     }
 
     async status(status: string): Promise<number> {
-        const { pending, active, reject } = await this.CounterRepo.findOne({
-            where: { id: 1 },
-        });
+        const { pending, active, reject, closed } =
+            await this.CounterRepo.findOne({
+                where: { id: 1 },
+            });
         const select = {
             pending: pending,
             active: active,
             reject: reject,
+            closed: closed,
         };
         console.log(select[status]);
         return select[status];

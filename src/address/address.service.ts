@@ -1,11 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserRole, VaultNftId } from 'src/custom';
+import { ContainBadgeData, UserRole } from 'src/custom';
 import { Address } from 'src/entities/arcane/address.entity';
-import {
-    isWalletContainsBadge,
-    getVaultAddressAndNftId,
-} from 'src/helpers/RadixAPI';
+import { isWalletContainsBadge } from 'src/helpers/RadixAPI';
 import { LoggerService } from 'src/logger/logger.service';
 import { Repository } from 'typeorm';
 
@@ -37,14 +34,10 @@ export class AddressService {
      * @returns Promise<Address> Registered Address object.
      * @throws UnauthorizedException if the address is not a valid admin or member.
      */
-    async register(
-        id: number,
-        address: string,
-        role: UserRole
-    ): Promise<Address> {
+    async register(id: number, address: string): Promise<Address> {
         this.logger.log('Getting wallet information.');
-        const userRole: UserRole = await isWalletContainsBadge(address);
-        if (userRole !== UserRole.Admin && userRole !== UserRole.Member) {
+        const user: ContainBadgeData = await isWalletContainsBadge(address);
+        if (user.role === UserRole.Unregistered) {
             this.logger.warn('address does not contain admin or member badge.');
             this.logger.fatal('Error.');
             throw new UnauthorizedException(
@@ -55,7 +48,8 @@ export class AddressService {
         const registeredAddress = this.addressRepo.create({
             id: id,
             address: address,
-            role: role,
+            role: user.role,
+            vault_address: user.vault_address,
         });
         return await this.addressRepo.save(registeredAddress);
     }
@@ -71,51 +65,22 @@ export class AddressService {
         return await this.addressRepo.findOne({ where: { address } });
     }
 
-    /**
-     * Grants admin privileges to an address.
-     *
-     * @param address The address to grant admin privileges.
-     * @returns Promise<string> The address with admin privileges.
-     */
-    async makeAdmin(address: string): Promise<string> {
+    async ChangeAddressTo(address: number, role: string): Promise<string> {
         this.logger.log('Getting address information.');
-        const account = await this.addressRepo.findOne({ where: { address } });
+        const account = await this.addressRepo.findOne({
+            where: { id: address },
+        });
         if (!account) {
             this.logger.warn('This user is not a member of Arcane.');
             return UserRole.Unregistered;
         }
-        this.logger.warn('Getting nftId and Vault Address.');
-        const data: VaultNftId = await getVaultAddressAndNftId(
-            address,
-            UserRole.Admin
-        );
         this.logger.warn('Success.');
-        account.role = UserRole.Admin;
-        account.vault_admin_address = data.vaultAddress;
-        account.nft_id = data.nftId;
+        if (role === 'a') {
+            account.role = UserRole.Admin;
+        } else if (role === 'm') {
+            account.role = UserRole.Member;
+        }
         await this.addressRepo.save(account);
-        return account.address;
-    }
-
-    /**
-     * Removes admin privileges from an address.
-     *
-     * @param address The address to revoke admin privileges.
-     * @returns Promise<string> The address without admin privileges.
-     */
-    async unmakeAdmin(address: string): Promise<string> {
-        const account = await this.addressRepo.findOne({ where: { address } });
-        if (!account) {
-            return UserRole.Unregistered;
-        }
-        account.role = UserRole.Member;
-        account.nft_id = null;
-        account.vault_admin_address = null;
-        if ((await isWalletContainsBadge(address)) === UserRole.Unregistered) {
-            await this.addressRepo.remove(account);
-        } else {
-            await this.addressRepo.save(account);
-        }
         return account.address;
     }
 

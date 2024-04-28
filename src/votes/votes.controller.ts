@@ -5,6 +5,7 @@ import {
     Get,
     Param,
     Post,
+    Put,
     Query,
     Res,
     UploadedFile,
@@ -23,6 +24,7 @@ import { PhotoUploadInterceptor } from './interceptors/photo-upload.interceptor'
 import { VotesService } from './votes.service';
 import { LoggerService } from 'src/logger/logger.service';
 import { WithdrawVoteDto } from './dto/withdraw-vote-dto';
+import { Status } from 'src/custom';
 
 @Controller('votes')
 export class VotesController {
@@ -42,6 +44,16 @@ export class VotesController {
         const methodName = 'createVote';
         this.logger.log(`Method: ${methodName} | Params: ${createVote}`);
         return this.votesService.createVote(createVote);
+    }
+
+    @Put('change-proposal-status/:id/:status')
+    async changeStatus(
+        @Param('filename') id: number,
+        @Param('filename') status: Status
+    ): Promise<Votes> {
+        const methodName = 'createVote';
+        this.logger.log(`Method: ${methodName} | Params: `);
+        return this.votesService.changeStatus(id, status);
     }
 
     /**
@@ -87,6 +99,7 @@ export class VotesController {
      *
      * @returns Promise<Votes[]> An array of all vote objects.
      */
+    @UseGuards(JWTGuard)
     @Get('get-votes')
     async getVotes(@Query('page') page: number): Promise<Votes[]> {
         const methodName = 'getVotes';
@@ -157,6 +170,7 @@ export class VotesController {
         return await this.votesService.withdrawVote(WithdrawVote);
     }
 
+    @UseGuards(JWTGuard)
     @Get('get-voter-data/:id')
     async voterData(@Param('id') id: number): Promise<Voters[]> {
         const methodName = 'voterData';

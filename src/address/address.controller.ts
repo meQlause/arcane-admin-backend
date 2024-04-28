@@ -7,7 +7,6 @@ import {
     Put,
     UseGuards,
 } from '@nestjs/common';
-import { UserRole } from 'src/custom';
 import { AddressService } from './address.service';
 import { RegisterAddressDto } from './dto/register-address-dto';
 import { Address } from 'src/entities/arcane/address.entity';
@@ -63,8 +62,7 @@ export class AddressController {
         this.logger.log(`$Method: ${methodName} | Params: ${registerAddress}`);
         return await this.addressService.register(
             registerAddress.id,
-            registerAddress.address,
-            UserRole.Member
+            registerAddress.address
         );
     }
 
@@ -75,25 +73,14 @@ export class AddressController {
      * @returns Promise<string> Success message.
      */
     @UseGuards(JWTGuard, AdminGuard)
-    @Put('make-admin/:address')
-    async makeAdmin(@Param('address') address: string): Promise<string> {
+    @Put('change-role-address/:address/:role')
+    async makeAdmin(
+        @Param('address') address: number,
+        @Param('address') role: string
+    ): Promise<string> {
         const methodName = 'make-admin';
         this.logger.log(`$Method: ${methodName} | Params: ${address}`);
-        return await this.addressService.makeAdmin(address);
-    }
-
-    /**
-     * Removes admin privileges from an address.
-     *
-     * @param address The address to revoke admin privileges.
-     * @returns Promise<string> Success message.
-     */
-    @UseGuards(JWTGuard, AdminGuard)
-    @Put('unmake-admin/:address')
-    async unmakeAdmin(@Param('address') address: string): Promise<string> {
-        const methodName = 'unmakeAdmin';
-        this.logger.log(`$Method: ${methodName} | Params: ${address}`);
-        return await this.addressService.unmakeAdmin(address);
+        return await this.addressService.ChangeAddressTo(address, role);
     }
 
     /**

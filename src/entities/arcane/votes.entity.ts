@@ -10,6 +10,7 @@ import {
 import { Address } from './address.entity';
 import { Discussions } from './discussion.entity';
 import { Voters } from './voters.entity';
+import { Status } from 'src/custom';
 
 @Entity()
 export class Votes {
@@ -43,8 +44,8 @@ export class Votes {
     @Column({ type: 'json', nullable: false })
     voteAddressCount: Record<string, number>;
 
-    @Column({ type: 'boolean', default: true })
-    isPending: boolean;
+    @Column({ type: 'enum', enum: Status, default: Status.PENDING })
+    status: Status;
 
     @OneToMany(() => Voters, (voters) => voters.vote)
     voters: Voters[];

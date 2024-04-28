@@ -10,6 +10,5 @@ export default () => ({
     passwordDb: `${process.env.PASSWORD_DB}`,
     dappsName: `${process.env.DAPPS_NAME}`,
     dappsDefinitionAddress: `${process.env.DAPPS_DEVICE_ADDRESS}`,
-    adminResourceAddress: `${process.env.ADMIN_RESOURCE_ADDRESS}`,
-    memberResourceAddress: `${process.env.MEMBER_RESOURCE_ADDRESS}`,
+    arcaneBadgeResourceAddress: `${process.env.ARCANE_BADGE_ADDRESS}`,
 });
