@@ -9,7 +9,7 @@ import { Address } from 'src/entities/arcane/address.entity';
 import { Discussions } from 'src/entities/arcane/discussion.entity';
 import { Voters } from 'src/entities/arcane/voters.entity';
 import { Votes } from 'src/entities/arcane/votes.entity';
-import { LessThan, Repository } from 'typeorm';
+import { LessThanOrEqual, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 import { AddVoteDto } from './dto/add-vote-dto';
 import { CreateVoteDto } from './dto/create-vote-dto';
@@ -90,6 +90,7 @@ export class VotesService {
             endEpoch: data.endEpoch,
             metadata: data.metadata,
             title: resData.title,
+            status: Status.PENDING,
             picture: resData.picture,
             description: resData.description,
             componentAddress: data.address,
@@ -128,23 +129,40 @@ export class VotesService {
             .getMany();
     }
 
-    async changeStatus(id: number, status: Status): Promise<Votes> {
+    async changeStatus(id: number, status: Status): Promise<Votes | Votes[]> {
+        this.logger.log(`getting ${status}`);
         if (status !== Status.CLOSED) {
             const voteData = await this.VotesRepo.findOne({
                 where: { id: id },
             });
             voteData.status = status;
+            this.logger.log(`get ${voteData}`);
             return this.VotesRepo.save(voteData);
         }
         const votes = await this.VotesRepo.find({
-            where: { endEpoch: LessThan(Number(id)) },
+            where: {
+                endEpoch: LessThanOrEqual(Number(id)),
+                status: Status.ACTIVE,
+            },
         });
+        this.logger.log(`get ${votes.length}`);
 
         votes.forEach((vote) => {
+            this.logger.log(`Before update: ${vote.status}`);
             vote.status = Status.CLOSED;
+            this.logger.log(`After update: ${vote.status}`);
         });
+        this.logger.log(`update to ${votes}`);
 
-        await this.VotesRepo.save(votes);
+        // Log the votes array before and after save
+        this.logger.log('Before save:', JSON.stringify(votes));
+        try {
+            await Promise.all(votes.map((vote) => this.VotesRepo.save(vote)));
+        } catch (error) {
+            this.logger.error(`Error while saving votes: ${error}`);
+        }
+        this.logger.log('After save:', JSON.stringify(votes));
+        return votes;
     }
 
     /**

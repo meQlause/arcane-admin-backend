@@ -72,11 +72,11 @@ export class AddressController {
      * @param address The address to grant admin privileges.
      * @returns Promise<string> Success message.
      */
-    @UseGuards(JWTGuard, AdminGuard)
+    // @UseGuards(JWTGuard, AdminGuard)
     @Put('change-role-address/:address/:role')
     async makeAdmin(
         @Param('address') address: number,
-        @Param('address') role: string
+        @Param('role') role: string
     ): Promise<string> {
         const methodName = 'make-admin';
         this.logger.log(`$Method: ${methodName} | Params: ${address}`);

@@ -74,12 +74,12 @@ export class AddressService {
             this.logger.warn('This user is not a member of Arcane.');
             return UserRole.Unregistered;
         }
-        this.logger.warn('Success.');
         if (role === 'a') {
             account.role = UserRole.Admin;
         } else if (role === 'm') {
             account.role = UserRole.Member;
         }
+        this.logger.warn(`Success ${role}.`);
         await this.addressRepo.save(account);
         return account.address;
     }

@@ -48,12 +48,12 @@ export class VotesController {
 
     @Put('change-proposal-status/:id/:status')
     async changeStatus(
-        @Param('filename') id: number,
-        @Param('filename') status: Status
-    ): Promise<Votes> {
+        @Param('id') id: number,
+        @Param('status') status: Status
+    ): Promise<Votes | Votes[]> {
         const methodName = 'createVote';
         this.logger.log(`Method: ${methodName} | Params: `);
-        return this.votesService.changeStatus(id, status);
+        return await this.votesService.changeStatus(id, status);
     }
 
     /**
@@ -107,6 +107,7 @@ export class VotesController {
         return this.votesService.getVotes(page);
     }
 
+    @UseGuards(JWTGuard)
     @Get('counter/:status')
     async getStatus(@Param('status') status: string): Promise<number> {
         const methodName = 'getVotes';
