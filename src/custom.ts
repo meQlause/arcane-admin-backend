@@ -4,6 +4,40 @@ export enum UserRole {
     Unregistered = 'unregistered',
 }
 
+export enum Status {
+    ACTIVE = 'active',
+    PENDING = 'pending',
+    REJECTED = 'rejected',
+    CLOSED = 'closed',
+}
+
+export interface ContainBadgeData {
+    vault_address: string | null;
+    nft_id: string | null;
+    role: UserRole;
+}
+
+export interface ResponseNftData {
+    non_fungible_id_type: string;
+    ledger_state: string;
+    resource_address: string;
+    non_fungible_ids: {
+        is_burned: boolean;
+        non_fungible_id: string;
+        data: {
+            raw_hex: string;
+            programmatic_json: {
+                fields: {
+                    variant_name: string;
+                };
+                kind: string;
+                type_name: string;
+            };
+        };
+        last_updated_at_state_version: number;
+    }[];
+}
+
 export type AuthResponse = {
     access_token: string | undefined;
     nft_id: string | undefined;

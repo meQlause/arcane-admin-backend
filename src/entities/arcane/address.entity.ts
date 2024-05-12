@@ -25,10 +25,7 @@ export class Address {
     role: UserRole;
 
     @Column({ unique: true, nullable: true })
-    vault_admin_address: string;
-
-    @Column({ unique: true, nullable: true })
-    nft_id: string;
+    vault_address: string;
 
     @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     signUpAt: Date;

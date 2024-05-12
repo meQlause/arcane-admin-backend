@@ -5,6 +5,7 @@ import {
     Get,
     Param,
     Post,
+    Put,
     Query,
     Res,
     UploadedFile,
@@ -23,6 +24,7 @@ import { PhotoUploadInterceptor } from './interceptors/photo-upload.interceptor'
 import { VotesService } from './votes.service';
 import { LoggerService } from 'src/logger/logger.service';
 import { WithdrawVoteDto } from './dto/withdraw-vote-dto';
+import { Status } from 'src/custom';
 
 @Controller('votes')
 export class VotesController {
@@ -42,6 +44,16 @@ export class VotesController {
         const methodName = 'createVote';
         this.logger.log(`Method: ${methodName} | Params: ${createVote}`);
         return this.votesService.createVote(createVote);
+    }
+
+    @Put('change-proposal-status/:id/:status')
+    async changeStatus(
+        @Param('id') id: number,
+        @Param('status') status: Status
+    ): Promise<Votes | Votes[]> {
+        const methodName = 'createVote';
+        this.logger.log(`Method: ${methodName} | Params: `);
+        return await this.votesService.changeStatus(id, status);
     }
 
     /**
@@ -87,18 +99,23 @@ export class VotesController {
      *
      * @returns Promise<Votes[]> An array of all vote objects.
      */
+    @UseGuards(JWTGuard)
     @Get('get-votes')
-    async getVotes(@Query('page') page: number): Promise<Votes[]> {
+    async getVotes(
+        @Query('page') page: number,
+        @Query('status') status: string
+    ): Promise<Votes[]> {
         const methodName = 'getVotes';
         this.logger.log(`Method: ${methodName} | Params: -`);
-        return this.votesService.getVotes(page);
+        return this.votesService.getVotes(page, status.split(','));
     }
 
-    @Get('counter/:status')
-    async getStatus(@Param('status') status: string): Promise<number> {
+    @UseGuards(JWTGuard)
+    @Get('counter')
+    async getStatus(@Query('count') count: string): Promise<number> {
         const methodName = 'getVotes';
         this.logger.log(`Method: ${methodName} | Params: -`);
-        return this.votesService.status(status);
+        return this.votesService.status(count.split(','));
     }
 
     @Get('get-votes-by/:id')
@@ -157,6 +174,7 @@ export class VotesController {
         return await this.votesService.withdrawVote(WithdrawVote);
     }
 
+    @UseGuards(JWTGuard)
     @Get('get-voter-data/:id')
     async voterData(@Param('id') id: number): Promise<Voters[]> {
         const methodName = 'voterData';

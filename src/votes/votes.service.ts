@@ -9,13 +9,14 @@ import { Address } from 'src/entities/arcane/address.entity';
 import { Discussions } from 'src/entities/arcane/discussion.entity';
 import { Voters } from 'src/entities/arcane/voters.entity';
 import { Votes } from 'src/entities/arcane/votes.entity';
-import { Repository } from 'typeorm';
+import { LessThanOrEqual, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 import { AddVoteDto } from './dto/add-vote-dto';
 import { CreateVoteDto } from './dto/create-vote-dto';
 import { LoggerService } from 'src/logger/logger.service';
 import { WithdrawVoteDto } from './dto/withdraw-vote-dto';
 import { Counter } from 'src/entities/arcane/counter.entity';
+import { Status } from 'src/custom';
 
 @Injectable()
 export class VotesService {
@@ -82,14 +83,15 @@ export class VotesService {
         } catch (error) {
             console.error(error);
         }
-        console.log(data.startEpoch + Number(resData.endEpoch));
 
         const vote: Votes = this.VotesRepo.create({
             id: data.id,
             startEpoch: data.startEpoch,
+            endEpoch: data.endEpoch,
             metadata: data.metadata,
-            endEpoch: data.startEpoch + Number(resData.endEpoch),
             title: resData.title,
+            createdBy: resData.createdBy,
+            status: Status.PENDING,
             picture: resData.picture,
             description: resData.description,
             componentAddress: data.address,
@@ -117,15 +119,58 @@ export class VotesService {
      *
      * @returns Promise<Votes[]> Array of votes.
      */
-    async getVotes(page: number, limit: number = 10): Promise<Votes[]> {
+    async getVotes(
+        page: number,
+        status: string[],
+        limit: number = 10
+    ): Promise<Votes[]> {
         this.logger.log('Get Votes data.');
         const skip = (page - 1) * limit;
+        console.log(status);
         return await this.VotesRepo.createQueryBuilder('votes')
             .leftJoinAndSelect('votes.address', 'address')
+            .where('votes.status IN (:...status)')
+            .setParameter('status', status)
             .orderBy('votes.id', 'DESC')
             .skip(skip)
             .take(limit)
             .getMany();
+    }
+
+    async changeStatus(id: number, status: Status): Promise<Votes | Votes[]> {
+        this.logger.log(`getting ${status}`);
+        if (status !== Status.CLOSED) {
+            const voteData = await this.VotesRepo.findOne({
+                where: { id: id },
+            });
+            voteData.status = status;
+            this.logger.log(`get ${voteData}`);
+            return this.VotesRepo.save(voteData);
+        }
+        const votes = await this.VotesRepo.find({
+            where: {
+                endEpoch: LessThanOrEqual(Number(id)),
+                status: Status.ACTIVE,
+            },
+        });
+        this.logger.log(`get ${votes.length}`);
+
+        votes.forEach((vote) => {
+            this.logger.log(`Before update: ${vote.status}`);
+            vote.status = Status.CLOSED;
+            this.logger.log(`After update: ${vote.status}`);
+        });
+        this.logger.log(`update to ${votes}`);
+
+        // Log the votes array before and after save
+        this.logger.log('Before save:', JSON.stringify(votes));
+        try {
+            await Promise.all(votes.map((vote) => this.VotesRepo.save(vote)));
+        } catch (error) {
+            this.logger.error(`Error while saving votes: ${error}`);
+        }
+        this.logger.log('After save:', JSON.stringify(votes));
+        return votes;
     }
 
     /**
@@ -170,6 +215,14 @@ export class VotesService {
     @Transactional({ connectionName: 'arcane-datasource' })
     async addVote(addVote: AddVoteDto): Promise<Voters> {
         this.logger.log('Getting Vote information.');
+        const isAlreadyVoted = await this.VotersRepo.findOne({
+            where: { AddressId: addVote.address },
+        });
+        if (isAlreadyVoted.vote.id === addVote.voteId) {
+            this.logger.fatal(`Already voted.`);
+            throw new BadRequestException('Already voted');
+        }
+
         const vote = await this.VotesRepo.createQueryBuilder('votes')
             .leftJoinAndSelect('votes.voters', 'voters')
             .where('votes.id = :voteId', { voteId: addVote.voteId })
@@ -243,16 +296,21 @@ export class VotesService {
             .getMany();
     }
 
-    async status(status: string): Promise<number> {
-        const { pending, active, reject } = await this.CounterRepo.findOne({
-            where: { id: 1 },
-        });
+    async status(status: string[]): Promise<number> {
+        const { pending, active, reject, closed } =
+            await this.CounterRepo.findOne({
+                where: { id: 1 },
+            });
         const select = {
             pending: pending,
             active: active,
             reject: reject,
+            closed: closed,
         };
-        console.log(select[status]);
-        return select[status];
+        let total = 0;
+        status.forEach((data) => {
+            total += select[data];
+        });
+        return total;
     }
 }

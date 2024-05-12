@@ -8,25 +8,61 @@ import {
     ResponseDataKVSDataState,
     ResponseDataKVSKeyState,
     ResponseDataTxDetails,
+    ContainBadgeData,
+    ResponseNftData,
     UserRole,
-    VaultNftId,
 } from 'src/custom';
 
 /**
  * Verifies the role of a user based on the items and role provided.
  * @param {Item} items - The items to verify.
- * @param {UserRole} role - The role to verify.
  * @returns {boolean} - True if the role is verified, false otherwise.
  */
-const verifyRole = (items: Item, role: UserRole): boolean => {
-    const neededResourceAddress =
-        role === UserRole.Admin
-            ? envConfig().adminResourceAddress!
-            : envConfig().memberResourceAddress!;
+const verifyRole = async (items: Item): Promise<ContainBadgeData> => {
+    const neededResourceAddress = envConfig().arcaneBadgeResourceAddress;
 
-    return items.non_fungible_resources.items.some((item: NFTData) => {
-        return item.resource_address === neededResourceAddress;
-    });
+    const data: NFTData =
+        items.non_fungible_resources.items.find(
+            (item: NFTData) => item.resource_address === neededResourceAddress
+        ) || null;
+    if (!data) {
+        return {
+            vault_address: null,
+            nft_id: null,
+            role: UserRole.Unregistered,
+        };
+    }
+
+    const body = {
+        resource_address: data.resource_address,
+        non_fungible_ids: [data.vaults.items[0].items[0]],
+    };
+    try {
+        const response: ResponseNftData = await fetch(
+            `${envConfig().gatewayRadix}/state/non-fungible/data`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
+            }
+        ).then((res) => res.json());
+
+        const role: UserRole =
+            response.non_fungible_ids[0].data.programmatic_json.fields[2]
+                .variant_name == 'Admin'
+                ? UserRole.Admin
+                : UserRole.Member;
+
+        return {
+            vault_address: data.vaults.items[0].vault_address,
+            nft_id: data.vaults.items[0].items[0],
+            role,
+        };
+    } catch (err: any) {
+        throw new Error(err);
+    }
 };
 
 /**
@@ -36,9 +72,10 @@ const verifyRole = (items: Item, role: UserRole): boolean => {
  */
 export const isWalletContainsBadge = async (
     address: string
-): Promise<UserRole> => {
+): Promise<ContainBadgeData> => {
     const body = {
         addresses: [address],
+        aggregation_level: 'Vault',
         opt_ins: {
             non_fungible_include_nfids: true,
         },
@@ -58,71 +95,7 @@ export const isWalletContainsBadge = async (
         const data: ResponseDataEntityState = await response.json();
         const { items } = data;
 
-        const admin = verifyRole(items[0], UserRole.Admin);
-        if (admin) {
-            return UserRole.Admin;
-        }
-
-        const member = verifyRole(items[0], UserRole.Member);
-        if (member) {
-            return UserRole.Member;
-        }
-
-        return UserRole.Unregistered;
-    } catch (err: any) {
-        throw new Error(err);
-    }
-};
-
-/**
- * Retrieves the vault address and NFT ID.
- * @param {string} address - The address to retrieve from.
- * @param {UserRole} role - The role to consider.
- * @returns {Promise<VaultNftId>} - The vault address and NFT ID.
- */
-export const getVaultAddressAndNftId = async (
-    address: string,
-    role: UserRole
-): Promise<VaultNftId> => {
-    const body = {
-        addresses: [address],
-        aggregation_level: 'Vault',
-        opt_ins: {
-            non_fungible_include_nfids: true,
-        },
-    };
-
-    try {
-        const response = await fetch(
-            `${envConfig().gatewayRadix}/state/entity/details`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(body),
-            }
-        );
-
-        const res: ResponseDataEntityState = await response.json();
-
-        let nftData: NFTData | null = null;
-        const neededResourceAddress =
-            role === UserRole.Admin
-                ? envConfig().adminResourceAddress
-                : envConfig().memberResourceAddress;
-
-        res.items[0].non_fungible_resources.items.some((nft: NFTData) => {
-            if (nft?.resource_address === neededResourceAddress) {
-                nftData = nft;
-                return true;
-            }
-        });
-
-        const vaultAddress = nftData?.vaults.items[0].vault_address;
-        const nftId = nftData?.vaults.items[0].items[0];
-
-        return { vaultAddress, nftId };
+        return verifyRole(items[0]);
     } catch (err: any) {
         throw new Error(err);
     }

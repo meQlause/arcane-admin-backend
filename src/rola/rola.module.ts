@@ -15,7 +15,7 @@ import { LoggerService } from 'src/logger/logger.service';
         JwtModule.register({
             global: true,
             secret: envConfig().jwtSecret,
-            signOptions: { expiresIn: '3600s' },
+            signOptions: { expiresIn: '440s' },
         }),
     ],
     controllers: [RolaController],

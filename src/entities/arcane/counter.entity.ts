@@ -13,4 +13,7 @@ export class Counter {
 
     @Column({ default: 0 })
     pending: number;
+
+    @Column({ default: 0 })
+    closed: number;
 }
