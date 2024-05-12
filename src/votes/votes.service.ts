@@ -90,6 +90,7 @@ export class VotesService {
             endEpoch: data.endEpoch,
             metadata: data.metadata,
             title: resData.title,
+            createdBy: resData.createdBy,
             status: Status.PENDING,
             picture: resData.picture,
             description: resData.description,
@@ -118,11 +119,18 @@ export class VotesService {
      *
      * @returns Promise<Votes[]> Array of votes.
      */
-    async getVotes(page: number, limit: number = 10): Promise<Votes[]> {
+    async getVotes(
+        page: number,
+        status: string[],
+        limit: number = 10
+    ): Promise<Votes[]> {
         this.logger.log('Get Votes data.');
         const skip = (page - 1) * limit;
+        console.log(status);
         return await this.VotesRepo.createQueryBuilder('votes')
             .leftJoinAndSelect('votes.address', 'address')
+            .where('votes.status IN (:...status)')
+            .setParameter('status', status)
             .orderBy('votes.id', 'DESC')
             .skip(skip)
             .take(limit)
@@ -207,6 +215,14 @@ export class VotesService {
     @Transactional({ connectionName: 'arcane-datasource' })
     async addVote(addVote: AddVoteDto): Promise<Voters> {
         this.logger.log('Getting Vote information.');
+        const isAlreadyVoted = await this.VotersRepo.findOne({
+            where: { AddressId: addVote.address },
+        });
+        if (isAlreadyVoted.vote.id === addVote.voteId) {
+            this.logger.fatal(`Already voted.`);
+            throw new BadRequestException('Already voted');
+        }
+
         const vote = await this.VotesRepo.createQueryBuilder('votes')
             .leftJoinAndSelect('votes.voters', 'voters')
             .where('votes.id = :voteId', { voteId: addVote.voteId })
@@ -280,7 +296,7 @@ export class VotesService {
             .getMany();
     }
 
-    async status(status: string): Promise<number> {
+    async status(status: string[]): Promise<number> {
         const { pending, active, reject, closed } =
             await this.CounterRepo.findOne({
                 where: { id: 1 },
@@ -291,7 +307,10 @@ export class VotesService {
             reject: reject,
             closed: closed,
         };
-        console.log(select[status]);
-        return select[status];
+        let total = 0;
+        status.forEach((data) => {
+            total += select[data];
+        });
+        return total;
     }
 }

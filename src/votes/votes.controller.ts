@@ -101,18 +101,21 @@ export class VotesController {
      */
     @UseGuards(JWTGuard)
     @Get('get-votes')
-    async getVotes(@Query('page') page: number): Promise<Votes[]> {
+    async getVotes(
+        @Query('page') page: number,
+        @Query('status') status: string
+    ): Promise<Votes[]> {
         const methodName = 'getVotes';
         this.logger.log(`Method: ${methodName} | Params: -`);
-        return this.votesService.getVotes(page);
+        return this.votesService.getVotes(page, status.split(','));
     }
 
     @UseGuards(JWTGuard)
-    @Get('counter/:status')
-    async getStatus(@Param('status') status: string): Promise<number> {
+    @Get('counter')
+    async getStatus(@Query('count') count: string): Promise<number> {
         const methodName = 'getVotes';
         this.logger.log(`Method: ${methodName} | Params: -`);
-        return this.votesService.status(status);
+        return this.votesService.status(count.split(','));
     }
 
     @Get('get-votes-by/:id')
