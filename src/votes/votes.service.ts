@@ -139,37 +139,53 @@ export class VotesService {
 
     async changeStatus(id: number, status: Status): Promise<Votes | Votes[]> {
         this.logger.log(`getting ${status}`);
+        const counterRes = await this.CounterRepo.findOne({
+            where: { id: 1 },
+        });
+        const select = {
+            pending: counterRes.pending,
+            active: counterRes.active,
+            rejected: counterRes.rejected,
+            closed: counterRes.closed,
+        };
+
         if (status !== Status.CLOSED) {
             const voteData = await this.VotesRepo.findOne({
                 where: { id: id },
             });
             voteData.status = status;
-            this.logger.log(`get ${voteData}`);
+            select[status] += 1;
+            select[Status.PENDING] -= 1;
+            counterRes.pending = select.pending;
+            counterRes.active = select.active;
+            counterRes.rejected = select.rejected;
+            counterRes.closed = select.closed;
             return this.VotesRepo.save(voteData);
         }
+
         const votes = await this.VotesRepo.find({
             where: {
                 endEpoch: LessThanOrEqual(Number(id)),
                 status: Status.ACTIVE,
             },
         });
-        this.logger.log(`get ${votes.length}`);
 
         votes.forEach((vote) => {
-            this.logger.log(`Before update: ${vote.status}`);
             vote.status = Status.CLOSED;
-            this.logger.log(`After update: ${vote.status}`);
+            select[Status.ACTIVE] -= 1;
+            select[Status.CLOSED] += 1;
         });
-        this.logger.log(`update to ${votes}`);
 
-        // Log the votes array before and after save
-        this.logger.log('Before save:', JSON.stringify(votes));
         try {
             await Promise.all(votes.map((vote) => this.VotesRepo.save(vote)));
+            counterRes.pending = select.pending;
+            counterRes.active = select.active;
+            counterRes.rejected = select.rejected;
+            counterRes.closed = select.closed;
+            await this.CounterRepo.save(counterRes);
         } catch (error) {
             this.logger.error(`Error while saving votes: ${error}`);
         }
-        this.logger.log('After save:', JSON.stringify(votes));
         return votes;
     }
 
@@ -218,9 +234,11 @@ export class VotesService {
         const isAlreadyVoted = await this.VotersRepo.findOne({
             where: { AddressId: addVote.address },
         });
-        if (isAlreadyVoted.vote.id === addVote.voteId) {
-            this.logger.fatal(`Already voted.`);
-            throw new BadRequestException('Already voted');
+        if (isAlreadyVoted.vote) {
+            if (isAlreadyVoted.vote.id === addVote.voteId) {
+                this.logger.fatal(`Already voted.`);
+                throw new BadRequestException('Already voted');
+            }
         }
 
         const vote = await this.VotesRepo.createQueryBuilder('votes')
@@ -297,14 +315,14 @@ export class VotesService {
     }
 
     async status(status: string[]): Promise<number> {
-        const { pending, active, reject, closed } =
+        const { pending, active, rejected, closed } =
             await this.CounterRepo.findOne({
                 where: { id: 1 },
             });
         const select = {
             pending: pending,
             active: active,
-            reject: reject,
+            rejected: rejected,
             closed: closed,
         };
         let total = 0;
