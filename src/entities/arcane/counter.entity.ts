@@ -9,7 +9,7 @@ export class Counter {
     active: number;
 
     @Column({ default: 0 })
-    reject: number;
+    rejected: number;
 
     @Column({ default: 0 })
     pending: number;
