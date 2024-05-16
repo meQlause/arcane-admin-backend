@@ -160,6 +160,7 @@ export class VotesService {
             counterRes.active = select.active;
             counterRes.rejected = select.rejected;
             counterRes.closed = select.closed;
+            this.CounterRepo.save(counterRes);
             return this.VotesRepo.save(voteData);
         }
 
@@ -234,7 +235,7 @@ export class VotesService {
         const isAlreadyVoted = await this.VotersRepo.findOne({
             where: { AddressId: addVote.address },
         });
-        if (isAlreadyVoted.vote) {
+        if (isAlreadyVoted?.vote) {
             if (isAlreadyVoted.vote.id === addVote.voteId) {
                 this.logger.fatal(`Already voted.`);
                 throw new BadRequestException('Already voted');
