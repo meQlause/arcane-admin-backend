@@ -6,7 +6,7 @@ import {
     ManyToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Votes } from './votes.entity';
+import { Proposal } from './proposal.entity';
 
 @Entity()
 export class Voters {
@@ -14,13 +14,13 @@ export class Voters {
     id: number;
 
     @Column({ type: 'bigint' })
-    AddressId: number;
+    address_id: number;
 
     @Column({ type: 'text' })
     title: string;
 
     @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    votedAt: Date;
+    voted_at: Date;
 
     @Column({ type: 'text', nullable: false })
     voter: string;
@@ -32,9 +32,9 @@ export class Voters {
     amount: number;
 
     @Column({ type: 'boolean', default: false })
-    isWithdrawed: boolean;
+    is_withdrawed: boolean;
 
-    @ManyToOne(() => Votes, (votes) => votes.voters)
+    @ManyToOne(() => Proposal, (proposal) => proposal.voters)
     @JoinColumn()
-    vote: Votes;
+    proposal: Proposal;
 }

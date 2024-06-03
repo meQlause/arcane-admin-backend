@@ -13,15 +13,15 @@ import { Voters } from './voters.entity';
 import { Status } from 'src/custom';
 
 @Entity()
-export class Votes {
+export class Proposal {
     @PrimaryColumn()
     id: number;
 
     @Column({ type: 'bigint', nullable: false })
-    startEpoch: number;
+    start_epoch: number;
 
     @Column({ type: 'bigint', nullable: false })
-    endEpoch: number;
+    end_epoch: number;
 
     @Column({ type: 'text', nullable: true })
     title: string;
@@ -33,31 +33,31 @@ export class Votes {
     description: string;
 
     @Column({ type: 'text', nullable: false })
-    componentAddress: string;
+    component_address: string;
 
     @Column({ type: 'text', nullable: false })
-    createdBy: string;
+    created_by: string;
 
     @Column({ type: 'text', nullable: false })
     picture: string;
 
     @Column({ type: 'json', nullable: false })
-    voteTokenAmount: Record<string, number>;
+    vote_token_amount: Record<string, number>;
 
     @Column({ type: 'json', nullable: false })
-    voteAddressCount: Record<string, number>;
+    vote_address_count: Record<string, number>;
 
     @Column({ type: 'enum', enum: Status, default: Status.PENDING })
     status: Status;
 
-    @OneToMany(() => Voters, (voters) => voters.vote)
+    @OneToMany(() => Voters, (voters) => voters.proposal)
     voters: Voters[];
 
-    @ManyToOne(() => Address, (address) => address.votes)
+    @ManyToOne(() => Address, (address) => address.proposals)
     @JoinColumn()
     address: Address;
 
-    @OneToOne(() => Discussions, (discussion) => discussion.votes)
+    @OneToOne(() => Discussions, (discussion) => discussion.proposal)
     @JoinColumn()
     discussion: Discussions;
 }

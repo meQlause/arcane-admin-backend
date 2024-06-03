@@ -1,4 +1,4 @@
-import envConfig from 'src/config/env.config';
+import envConfig from 'src/config/config';
 import {
     Item,
     KeyHexData,
@@ -19,7 +19,7 @@ import {
  * @returns {boolean} - True if the role is verified, false otherwise.
  */
 const verifyRole = async (items: Item): Promise<ContainBadgeData> => {
-    const neededResourceAddress = envConfig().arcaneBadgeResourceAddress;
+    const neededResourceAddress = envConfig.arcaneBadgeAddress;
 
     const data: NFTData =
         items.non_fungible_resources.items.find(
@@ -39,7 +39,7 @@ const verifyRole = async (items: Item): Promise<ContainBadgeData> => {
     };
     try {
         const response: ResponseNftData = await fetch(
-            `${envConfig().gatewayRadix}/state/non-fungible/data`,
+            `${envConfig.gatewayRadix}/state/non-fungible/data`,
             {
                 method: 'POST',
                 headers: {
@@ -82,7 +82,7 @@ export const isWalletContainsBadge = async (
     };
     try {
         const response = await fetch(
-            `${envConfig().gatewayRadix}/state/entity/details`,
+            `${envConfig.gatewayRadix}/state/entity/details`,
             {
                 method: 'POST',
                 headers: {
@@ -118,7 +118,7 @@ export const getVoteComponentAddress = async (
     };
     try {
         const response = await fetch(
-            `${envConfig().gatewayRadix}/transaction/committed-details`,
+            `${envConfig.gatewayRadix}/transaction/committed-details`,
             {
                 method: 'POST',
                 headers: {
@@ -159,7 +159,7 @@ export const getVotesKeyValueStoreAddressFromComponent = async (
     };
     try {
         const response = await fetch(
-            `${envConfig().gatewayRadix}/state/entity/details`,
+            `${envConfig.gatewayRadix}/state/entity/details`,
             {
                 method: 'POST',
                 headers: {
@@ -198,7 +198,7 @@ export const getVoteKeyValueMap = async (
     };
     try {
         const response = await fetch(
-            `${envConfig().gatewayRadix}/state/key-value-store/keys`,
+            `${envConfig.gatewayRadix}/state/key-value-store/keys`,
             {
                 method: 'POST',
                 headers: {
@@ -230,7 +230,7 @@ const getVoteData = async (
     };
     try {
         const response = await fetch(
-            `${envConfig().gatewayRadix}/state/key-value-store/data`,
+            `${envConfig.gatewayRadix}/state/key-value-store/data`,
             {
                 method: 'POST',
                 headers: {

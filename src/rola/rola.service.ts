@@ -10,6 +10,7 @@ import { Address } from 'src/entities/arcane/address.entity';
 import { RolaChallenge } from 'src/entities/rola-challenge/rola-challenge.entity';
 import { isWalletContainsBadge } from 'src/helpers/RadixAPI';
 import { LoggerService } from 'src/logger/logger.service';
+import envConfig from 'src/config/config';
 
 @Injectable()
 export class RolaService {
@@ -23,11 +24,10 @@ export class RolaService {
         private readonly logger: LoggerService
     ) {
         this.rolaProperty = Rola({
-            applicationName: 'Arcane Labyrinth',
-            dAppDefinitionAddress:
-                'account_tdx_2_1293z892mr8wx3ga73zlrfwmlakx38te882yjfe2ehuxhk5z2cgp8rc',
             networkId: 2,
-            expectedOrigin: 'https://arcanedev.site',
+            applicationName: 'Arcane Labyrinth',
+            expectedOrigin: envConfig.expectedOrigin,
+            dAppDefinitionAddress: envConfig.dappsDefinitionAddress,
         });
     }
 
@@ -38,7 +38,6 @@ export class RolaService {
      * @returns A hexadecimal string representing the generated random bytes.
      */
     private secureRandom(byteCount: number): string {
-        this.logger.log('Generating random hex.');
         return crypto.randomBytes(byteCount).toString('hex');
     }
 
@@ -49,7 +48,6 @@ export class RolaService {
      * @returns Promise<Address> The validated address object if found, otherwise null.
      */
     private async validateAddress(address: string): Promise<Address> {
-        this.logger.log('Getting address information.');
         return await this.AddressRepo.findOne({
             where: { address: address },
         });
@@ -61,7 +59,6 @@ export class RolaService {
      * @returns Promise<RolaChallenge> The created Rola authentication challenge.
      */
     async createChallenge(): Promise<RolaChallenge> {
-        this.logger.log('generating challenge.');
         const challenge = this.secureRandom(32);
         const expires = Date.now() + 1000 * 60 * 5;
         const challengeToSave = this.rolaChallengeRepo.create({
@@ -78,19 +75,13 @@ export class RolaService {
      * @returns Promise<boolean> True if the challenge is valid and not expired, otherwise false.
      */
     async verifyChallenge(input: string): Promise<boolean> {
-        this.logger.debug(`rola property : `);
-        this.logger.log('Getting challenge information.');
         const challenge = await this.rolaChallengeRepo.findOne({
             where: { challenge: input },
         });
         if (!challenge) {
-            this.logger.warn('Challenge is not valid (expired).');
             return false;
         }
-        this.logger.log('Challenge valid, Remove from database.');
         await this.rolaChallengeRepo.remove(challenge);
-        this.logger.log('Valid.');
-        this.logger.log(challenge.expires > Date.now());
         return challenge.expires > Date.now();
     }
 
@@ -104,15 +95,13 @@ export class RolaService {
         try {
             const account = await this.validateAddress(address);
             if (!account) {
-                this.logger.warn('Address is not valid.');
                 return {
-                    access_token: undefined,
                     address: address,
                     role: UserRole.Unregistered,
+                    access_token: undefined,
                     nft_id: undefined,
                 };
             }
-            this.logger.log('address valid, validate data.');
             const [data, accessToken]: [ContainBadgeData, string] =
                 await Promise.all([
                     isWalletContainsBadge(address),
@@ -121,7 +110,6 @@ export class RolaService {
                         role: account.role,
                     }),
                 ]);
-            this.logger.log('Valid.');
             return {
                 access_token: accessToken,
                 address: account.address,
@@ -129,8 +117,6 @@ export class RolaService {
                 nft_id: data.nft_id,
             };
         } catch (error) {
-            this.logger.fatal(`Error ${error}.`);
-
             throw new UnauthorizedException('Login failed');
         }
     }

@@ -5,7 +5,7 @@ import { DataSource } from 'typeorm';
 import { AddressModule } from './address/address.module';
 import { rolaChallenge, arcane } from './config/ormconfig';
 import { RolaModule } from './rola/rola.module';
-import { VotesModule } from './votes/votes.module';
+import { ProposalModule } from './proposal/proposal.module';
 import { LoggerService } from './logger/logger.service';
 
 @Module({
@@ -26,6 +26,7 @@ import { LoggerService } from './logger/logger.service';
                 });
             },
         }),
+
         TypeOrmModule.forRootAsync({
             name: 'arcane-connection',
             useFactory() {
@@ -44,7 +45,7 @@ import { LoggerService } from './logger/logger.service';
         }),
         RolaModule,
         AddressModule,
-        VotesModule,
+        ProposalModule,
     ],
     providers: [LoggerService],
 })
