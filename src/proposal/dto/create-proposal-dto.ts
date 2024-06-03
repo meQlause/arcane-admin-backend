@@ -1,6 +1,6 @@
 import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
-export class CreateVoteDto {
+export class CreateProposalDto {
     @IsNumber()
     @IsNotEmpty()
     id: number;
@@ -23,9 +23,9 @@ export class CreateVoteDto {
 
     @IsNumber()
     @IsNotEmpty()
-    startEpoch: number;
+    start_epoch: number;
 
     @IsNumber()
     @IsNotEmpty()
-    endEpoch: number;
+    end_epoch: number;
 }

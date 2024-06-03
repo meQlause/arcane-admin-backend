@@ -3,9 +3,9 @@ import { IsNotEmpty, IsNumber } from 'class-validator';
 export class WithdrawVoteDto {
     @IsNumber()
     @IsNotEmpty()
-    addressId: number;
+    address_id: number;
 
     @IsNumber()
     @IsNotEmpty()
-    voteId: number;
+    proposal_id: number;
 }

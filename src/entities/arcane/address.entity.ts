@@ -8,7 +8,7 @@ import {
     PrimaryColumn,
 } from 'typeorm';
 import { Discussions } from './discussion.entity';
-import { Votes } from './votes.entity';
+import { Proposal } from './proposal.entity';
 
 @Entity()
 export class Address {
@@ -27,11 +27,14 @@ export class Address {
     @Column({ unique: true, nullable: true })
     vault_address: string;
 
-    @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    signUpAt: Date;
+    @Column({ unique: true, nullable: true })
+    profile_pict: string;
 
-    @OneToMany(() => Votes, (vote) => vote.address)
-    votes: Votes[];
+    @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    sign_up_at: Date;
+
+    @OneToMany(() => Proposal, (proposal) => proposal.address)
+    proposals: Proposal[];
 
     @ManyToMany(() => Discussions, (discussion) => discussion.addresses)
     discussions: Discussions[];

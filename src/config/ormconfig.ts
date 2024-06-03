@@ -3,8 +3,8 @@ import { RolaChallenge } from '../entities/rola-challenge/rola-challenge.entity'
 import { Address } from '../entities/arcane/address.entity';
 import { Discussions } from '../entities/arcane/discussion.entity';
 import { Voters } from '../entities/arcane/voters.entity';
-import { Votes } from '../entities/arcane/votes.entity';
-import envConfig from './env.config';
+import { Proposal } from '../entities/arcane/proposal.entity';
+import envConfig from './config';
 import { Counter } from 'src/entities/arcane/counter.entity';
 
 export const rolaChallenge: PostgresConnectionOptions = {
@@ -12,10 +12,10 @@ export const rolaChallenge: PostgresConnectionOptions = {
     database: 'rola_challenge',
     host: 'database',
     port: 5432,
-    username: envConfig().userDb,
-    password: envConfig().passwordDb,
+    username: envConfig.userDb,
+    password: envConfig.passwordDb,
     entities: [RolaChallenge],
-    synchronize: true,
+    synchronize: envConfig.mode === 'dev_stokenet' ? true : false,
 };
 
 export const arcane: PostgresConnectionOptions = {
@@ -23,8 +23,8 @@ export const arcane: PostgresConnectionOptions = {
     database: 'arcane',
     host: 'database',
     port: 5432,
-    username: process.env.USER_DB,
-    password: process.env.PASSWORD_DB,
-    entities: [Address, Votes, Discussions, Voters, Counter],
-    synchronize: true,
+    username: envConfig.userDb,
+    password: envConfig.passwordDb,
+    entities: [Address, Proposal, Discussions, Voters, Counter],
+    synchronize: envConfig.mode === 'dev_stokenet' ? true : false,
 };

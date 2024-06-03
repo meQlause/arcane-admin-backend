@@ -7,7 +7,7 @@ import {
     PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from './address.entity';
-import { Votes } from './votes.entity';
+import { Proposal } from './proposal.entity';
 
 @Entity()
 export class Discussions {
@@ -17,8 +17,8 @@ export class Discussions {
     @Column({ type: 'json', nullable: true })
     chat: Record<string, string>;
 
-    @OneToOne(() => Votes, (votes) => votes.discussion)
-    votes: Votes;
+    @OneToOne(() => Proposal, (proposal) => proposal.discussion)
+    proposal: Proposal;
 
     @ManyToMany(() => Address, (address) => address.discussions)
     @JoinTable()

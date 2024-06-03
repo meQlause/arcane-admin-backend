@@ -18,9 +18,9 @@ export class RolaController {
      */
     @Get('generate-challenge')
     async generateChallenge(): Promise<{ challenge: string }> {
-        const methodName = 'generateChallenge';
-        this.logger.log(`Method: ${methodName} | Params: -`);
+        this.logger.log(`[rola] Generating challenge.`);
         const { challenge } = await this.rola.createChallenge();
+        this.logger.log(`[rola] Challenge : ${challenge}.`);
         return { challenge: challenge };
     }
 
@@ -33,8 +33,9 @@ export class RolaController {
     @UseGuards(RolaGuard)
     @Post('verify')
     async verify(@Request() req: any): Promise<AuthResponse> {
-        const methodName = 'verify';
-        this.logger.log(`$Method: ${methodName} | Params: ${req}`);
-        return await this.rola.login(req.address);
+        this.logger.log(`[rola] Verifying ${req}`);
+        const res = await this.rola.login(req.address);
+        this.logger.log(`Response: ${JSON.stringify(res, null, 2)}`);
+        return res;
     }
 }

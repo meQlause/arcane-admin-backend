@@ -11,9 +11,9 @@ export class AddVoteDto {
 
     @IsNumber()
     @IsNotEmpty()
-    tokenAmount: number;
+    token_amount: number;
 
     @IsNumber()
     @IsNotEmpty()
-    voteId: number;
+    proposal_id: number;
 }
