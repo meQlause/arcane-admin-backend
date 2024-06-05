@@ -26,7 +26,7 @@ const data = {
         jwtSecret: 'arcane123$$$$$@!@',
         ipfsKey: 'sk_live_00998243-feff-49f8-a092-8cb33d87e5c9',
         gatewayRadix: 'https://stokenet.radixdlt.com',
-        expectedOrigin: 'http://arcanedev.site',
+        expectedOrigin: 'https://arcanedev.site',
         userDb: `${process.env.USER_DB}`,
         passwordDb: `${process.env.PASSWORD_DB}`,
         dappsName: 'Arcane Labyrinth',
