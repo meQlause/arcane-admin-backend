@@ -101,7 +101,6 @@ export class AddressController {
      * @throws Will throw an error if the user is not authorized or if the address does not exist.
      *
      */
-    @UseGuards(JWTGuard, AdminGuard)
     @Put('change-address-role')
     async changeAddressRole(
         @Query('address') address: number,
