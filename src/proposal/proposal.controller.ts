@@ -133,9 +133,10 @@ export class ProposalController {
         return this.votesService.count(count.split(','));
     }
 
-    @Get('get-proposal-list-by/:user-id')
+    @UseGuards(JWTGuard)
+    @Get('get-proposal-list-by/:userId')
     async getProposalListByUserId(
-        @Param('user-id') userId: number
+        @Param('userId') userId: number
     ): Promise<Proposal[]> {
         this.logger.log(`[vote] Get proposal filtered by user id: ${userId}`);
         const res = await this.votesService.getProposalListByUserId(userId);
@@ -178,7 +179,6 @@ export class ProposalController {
      * @param addVote The data for adding the vote.
      * @returns Promise<Voters> The newly added voter object.
      */
-    @UseGuards(JWTGuard)
     @Post('add-vote')
     async addVote(@Body() addVote: AddVoteDto): Promise<Voters> {
         this.logger.log(
@@ -189,7 +189,6 @@ export class ProposalController {
         return res;
     }
 
-    @UseGuards(JWTGuard)
     @Post('withdraw-vote')
     async withdraw(@Body() withdrawVote: WithdrawVoteDto): Promise<Voters> {
         this.logger.log(

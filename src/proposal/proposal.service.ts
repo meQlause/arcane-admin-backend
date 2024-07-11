@@ -237,7 +237,7 @@ export class ProposalService {
         return await this.VotersRepo.createQueryBuilder('voters')
             .leftJoinAndSelect('voters.proposal', 'proposal')
             .where('proposal.id = :id', { id })
-            .andWhere('voters.AddressId = :nftId', { nftId })
+            .andWhere('voters.address_id = :nftId', { nftId })
             .getOne();
     }
 
@@ -354,7 +354,7 @@ export class ProposalService {
     async voterData(id: number): Promise<Voters[]> {
         return await this.VotersRepo.createQueryBuilder('voters')
             .leftJoinAndSelect('voters.proposal', 'proposal')
-            .where('voters.AddressId = :id', { id })
+            .where('voters.address_id = :id', { id })
             .orderBy('voters.id', 'DESC')
             .getMany();
     }
