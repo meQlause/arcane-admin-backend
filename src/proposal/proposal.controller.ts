@@ -162,10 +162,13 @@ export class ProposalController {
     @Get('voter/')
     async getVoterDataForVote(
         @Query('proposalId') proposalId: number,
-        @Query('nftId') nftId: number
+        @Query('nftId') nftId: string
     ): Promise<Voters> | undefined {
         this.logger.log(`[vote] Get spesific voter data for vote`);
-        const res = await this.votesService.getVoterData(proposalId, nftId);
+        const res = await this.votesService.getVoterData(
+            proposalId,
+            BigInt(nftId)
+        );
         this.logger.log(`Response: ${JSON.stringify(res, null, 2)}`);
         if (res) {
             return res;

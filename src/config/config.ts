@@ -31,7 +31,7 @@ const data = {
         passwordDb: `${process.env.PASSWORD_DB}`,
         dappsName: 'Arcane Labyrinth',
         arcaneBadgeAddress:
-            'resource_tdx_2_1nfpez2d0ph7apyzj082egn7hf4dgnr8cujaffl0fnvecwd0wy4wxgd',
+            'resource_tdx_2_1nfyuwrfm07kr78fhxhdut2vhhfrz64cgfhkn2j6p2yyg6vaklk35ga',
         dappsDefinitionAddress:
             'account_tdx_2_129wsptp9d7fdrj7pqgpnwv59k2q9ywc2cy38047peha5axkgugrvkc',
     } satisfies config,
