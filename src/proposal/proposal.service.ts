@@ -233,7 +233,7 @@ export class ProposalService {
             .getOne();
     }
 
-    async getVoterData(id: number, nftId: number): Promise<Voters> {
+    async getVoterData(id: number, nftId: bigint): Promise<Voters> {
         return await this.VotersRepo.createQueryBuilder('voters')
             .leftJoinAndSelect('voters.proposal', 'proposal')
             .where('proposal.id = :id', { id })
